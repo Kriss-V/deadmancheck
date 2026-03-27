@@ -3,6 +3,6 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level debug"
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level debug"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
