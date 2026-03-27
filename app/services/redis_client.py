@@ -17,7 +17,15 @@ START_PING_TTL_SECONDS = 86400
 
 async def init_redis() -> None:
     global _redis
-    _redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        _redis = Redis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=5)
+        await _redis.ping()
+        logger.info("Redis connected: %s", settings.redis_url)
+    except Exception as e:
+        logger.warning("Redis unavailable (%s) — duration tracking disabled", e)
+        _redis = None
 
 
 async def close_redis() -> None:
@@ -27,7 +35,5 @@ async def close_redis() -> None:
         _redis = None
 
 
-def get_redis() -> Redis:
-    if _redis is None:
-        raise RuntimeError("Redis not initialised — call init_redis() at startup")
+def get_redis() -> Redis | None:
     return _redis

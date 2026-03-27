@@ -42,8 +42,11 @@ async def _get_monitor(monitor_id: str, db: AsyncSession) -> Monitor:
 
 
 async def _compute_duration(monitor_id: str) -> float | None:
+    redis = get_redis()
+    if redis is None:
+        return None
     key = _START_KEY_PREFIX + str(monitor_id)
-    value = await get_redis().getdel(key)
+    value = await redis.getdel(key)
     if value is None:
         return None
     start = datetime.fromisoformat(value)
@@ -132,8 +135,10 @@ async def ping_start(
     if monitor.is_paused:
         return {"status": "paused"}
 
-    key = _START_KEY_PREFIX + str(monitor.id)
-    await get_redis().set(key, datetime.now(timezone.utc).isoformat(), ex=START_PING_TTL_SECONDS)
+    redis = get_redis()
+    if redis is not None:
+        key = _START_KEY_PREFIX + str(monitor.id)
+        await redis.set(key, datetime.now(timezone.utc).isoformat(), ex=START_PING_TTL_SECONDS)
 
     ping = Ping(
         monitor_id=monitor.id,
