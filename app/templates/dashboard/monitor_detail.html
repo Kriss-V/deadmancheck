@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/dashboard" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <div class="flex items-center gap-4 text-sm">
+      <span class="text-gray-400">{{ user.email }}</span>
+      <form action="/logout" method="post">
+        <button class="text-gray-500 hover:text-white transition-colors">Log out</button>
+      </form>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-8">
+    <div class="flex items-center gap-3">
+      {% if monitor.is_paused %}
+      <span class="w-4 h-4 bg-gray-600 rounded-full inline-block mt-1"></span>
+      {% elif monitor.status == 'up' %}
+      <span class="w-4 h-4 bg-brand-500 rounded-full inline-block animate-pulse mt-1"></span>
+      {% elif monitor.status == 'late' %}
+      <span class="w-4 h-4 bg-red-500 rounded-full inline-block mt-1"></span>
+      {% else %}
+      <span class="w-4 h-4 bg-gray-500 rounded-full inline-block mt-1"></span>
+      {% endif %}
+      <div>
+        <h1 class="text-2xl font-bold">{{ monitor.name }}</h1>
+        <p class="text-gray-400 text-sm mt-0.5">
+          {% if monitor.status == 'up' %}Up{% elif monitor.status == 'late' %}DOWN{% elif monitor.is_paused %}Paused{% else %}Waiting for first ping{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/monitors/{{ monitor.id }}/edit" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">Edit</a>
+      <form action="/api/monitors/{{ monitor.id }}/pause" method="post">
+        <button class="border border-gray-700 hover:border-gray-500 text-gray-300 px-4 py-2 rounded-lg text-sm transition-colors">
+          {{ 'Resume' if monitor.is_paused else 'Pause' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ping URL -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6">
+    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Ping URL</p>
+    <div class="flex items-center gap-3">
+      <code class="text-brand-400 text-sm flex-1 break-all">{{ ping_url }}</code>
+      <button onclick="navigator.clipboard.writeText('{{ ping_url }}')" class="flex-shrink-0 text-xs border border-gray-700 hover:border-gray-500 text-gray-400 px-3 py-1.5 rounded transition-colors">Copy</button>
+    </div>
+    {% if monitor.expect_duration_enabled %}
+    <div class="mt-4 pt-4 border-t border-gray-800 space-y-1 text-xs text-gray-500">
+      <p>Duration tracking: <code class="text-gray-300">GET {{ ping_url }}/start</code> before · <code class="text-gray-300">GET {{ ping_url }}</code> after</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Last ping</p>
+      <p class="font-semibold">{{ monitor.last_ping_at.strftime('%H:%M:%S') if monitor.last_ping_at else '—' }}</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Avg duration</p>
+      <p class="font-semibold">{{ ('%.1f'|format(monitor.avg_duration_seconds) + 's') if monitor.avg_duration_seconds else '—' }}</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Schedule</p>
+      <p class="font-semibold text-sm">
+        {% if monitor.schedule_type == 'cron' %}{{ monitor.cron_expression }}
+        {% else %}every {{ (monitor.period_seconds // 60)|string + 'm' if monitor.period_seconds >= 60 else monitor.period_seconds|string + 's' }}{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Recent pings -->
+  <h2 class="text-lg font-semibold mb-4">Recent pings</h2>
+  {% if pings %}
+  <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="border-b border-gray-800">
+        <tr class="text-gray-500 text-xs uppercase tracking-wider">
+          <th class="text-left px-5 py-3">Time</th>
+          <th class="text-left px-5 py-3">Kind</th>
+          <th class="text-left px-5 py-3">Duration</th>
+          <th class="text-left px-5 py-3">Exit code</th>
+          <th class="text-left px-5 py-3">Source</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800">
+        {% for p in pings %}
+        <tr class="hover:bg-gray-800/50 transition-colors {% if p.duration_anomaly %}bg-yellow-900/10{% endif %}">
+          <td class="px-5 py-3 font-mono text-xs text-gray-300">{{ p.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td class="px-5 py-3">
+            {% if p.kind == 'success' %}
+            <span class="text-brand-500">✓ success</span>
+            {% elif p.kind == 'start' %}
+            <span class="text-blue-400">▶ start</span>
+            {% elif p.kind == 'fail' %}
+            <span class="text-red-400">✗ fail</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3 font-mono text-xs">
+            {% if p.duration_seconds is not none %}
+              <span class="{{ 'text-yellow-400' if p.duration_anomaly else 'text-gray-300' }}">
+                {{ '%.2f'|format(p.duration_seconds) }}s
+                {% if p.duration_anomaly %} ⚠{% endif %}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-5 py-3 font-mono text-xs text-gray-400">{{ p.exit_code if p.exit_code is not none else '—' }}</td>
+          <td class="px-5 py-3 font-mono text-xs text-gray-500">{{ p.source_ip or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center text-gray-500">
+    <p>No pings yet. Add the ping URL to your cron job.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

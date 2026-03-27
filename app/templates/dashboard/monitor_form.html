@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/dashboard" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <a href="/dashboard" class="text-gray-500 hover:text-white text-sm transition-colors">← Back</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-10">
+  <h1 class="text-2xl font-bold mb-8">{{ 'Edit monitor' if monitor else 'New monitor' }}</h1>
+
+  <form id="monitorForm" class="space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+      <input type="text" name="name" value="{{ monitor.name if monitor else '' }}" required
+        placeholder="e.g. Nightly database backup"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Schedule</label>
+      <div class="flex gap-3 mb-3">
+        <button type="button" id="btnPeriod" onclick="setScheduleType('period')"
+          class="schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors border-brand-500 bg-brand-500/10 text-brand-400">
+          Every N minutes
+        </button>
+        <button type="button" id="btnCron" onclick="setScheduleType('cron')"
+          class="schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors border-gray-700 text-gray-400">
+          Cron expression
+        </button>
+      </div>
+
+      <div id="periodInput">
+        <div class="flex items-center gap-3">
+          <input type="number" name="period_minutes" min="1" value="{{ (monitor.period_seconds // 60) if monitor and monitor.period_seconds else 60 }}"
+            class="w-32 bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+          <span class="text-gray-400 text-sm">minutes</span>
+        </div>
+      </div>
+
+      <div id="cronInput" class="hidden">
+        <input type="text" name="cron_expression" value="{{ monitor.cron_expression if monitor else '' }}"
+          placeholder="0 3 * * *  (every day at 3am)"
+          class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors font-mono">
+        <p class="text-xs text-gray-500 mt-1">Standard 5-field cron: minute hour day month weekday</p>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Grace period</label>
+      <div class="flex items-center gap-3">
+        <input type="number" name="grace_minutes" min="1" value="{{ (monitor.grace_seconds // 60) if monitor else 5 }}"
+          class="w-32 bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+        <span class="text-gray-400 text-sm">minutes after due before alerting</span>
+      </div>
+    </div>
+
+    <!-- Duration monitoring -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-medium text-sm">Duration monitoring</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Alert when your job takes longer than expected</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" name="expect_duration_enabled" id="durationToggle"
+            {% if monitor and monitor.expect_duration_enabled %}checked{% endif %}
+            onchange="toggleDuration(this.checked)"
+            class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-700 peer-focus:ring-2 peer-focus:ring-brand-500 rounded-full peer peer-checked:bg-brand-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+        </label>
+      </div>
+
+      <div id="durationOptions" class="{% if not (monitor and monitor.expect_duration_enabled) %}hidden{% endif %} space-y-4">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Hard maximum (seconds) — optional</label>
+          <input type="number" name="expect_duration_max_seconds" min="1"
+            value="{{ monitor.expect_duration_max_seconds if monitor and monitor.expect_duration_max_seconds else '' }}"
+            placeholder="e.g. 300"
+            class="w-40 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Alert if duration exceeds X% of rolling average</label>
+          <div class="flex items-center gap-2">
+            <input type="number" name="duration_alert_pct" min="110" max="1000"
+              value="{{ monitor.duration_alert_pct if monitor else 200 }}"
+              class="w-24 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+            <span class="text-gray-400 text-sm">% <span class="text-gray-600">(200% = alert if 2x slower than usual)</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Alert email <span class="text-gray-500 font-normal">(leave blank to use account email)</span></label>
+      <input type="email" name="alert_email" value="{{ monitor.alert_email if monitor and monitor.alert_email else '' }}"
+        placeholder="ops-team@yourcompany.com"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Webhook URL <span class="text-gray-500 font-normal">(optional)</span></label>
+      <input type="url" name="alert_webhook_url" value="{{ monitor.alert_webhook_url if monitor and monitor.alert_webhook_url else '' }}"
+        placeholder="https://hooks.slack.com/..."
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+        {{ 'Save changes' if monitor else 'Create monitor' }}
+      </button>
+      <a href="/dashboard" class="text-gray-500 hover:text-white text-sm transition-colors">Cancel</a>
+      {% if monitor %}
+      <button type="button" onclick="deleteMonitor()" class="ml-auto text-red-400 hover:text-red-300 text-sm transition-colors">Delete monitor</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<script>
+let scheduleType = '{{ monitor.schedule_type if monitor else "period" }}';
+
+function setScheduleType(type) {
+  scheduleType = type;
+  document.getElementById('periodInput').classList.toggle('hidden', type !== 'period');
+  document.getElementById('cronInput').classList.toggle('hidden', type !== 'cron');
+  document.getElementById('btnPeriod').className = 'schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors ' +
+    (type === 'period' ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-gray-700 text-gray-400');
+  document.getElementById('btnCron').className = 'schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors ' +
+    (type === 'cron' ? 'border-brand-500 bg-brand-500/10 text-brand-400' : 'border-gray-700 text-gray-400');
+}
+
+function toggleDuration(enabled) {
+  document.getElementById('durationOptions').classList.toggle('hidden', !enabled);
+}
+
+document.getElementById('monitorForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    name: form.name.value,
+    schedule_type: scheduleType,
+    period_seconds: scheduleType === 'period' ? parseInt(form.period_minutes.value) * 60 : null,
+    cron_expression: scheduleType === 'cron' ? form.cron_expression.value : null,
+    grace_seconds: parseInt(form.grace_minutes.value) * 60,
+    expect_duration_enabled: form.expect_duration_enabled.checked,
+    expect_duration_max_seconds: form.expect_duration_max_seconds.value ? parseInt(form.expect_duration_max_seconds.value) : null,
+    duration_alert_pct: parseInt(form.duration_alert_pct.value),
+    alert_email: form.alert_email.value || null,
+    alert_webhook_url: form.alert_webhook_url.value || null,
+    alert_on_recovery: true,
+  };
+
+  const monitorId = '{{ monitor.id if monitor else "" }}';
+  const url = monitorId ? `/api/monitors/${monitorId}` : '/api/monitors';
+  const method = monitorId ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method,
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+
+  if (res.ok) {
+    window.location.href = '/dashboard';
+  } else {
+    const err = await res.json();
+    alert(err.detail || 'Something went wrong');
+  }
+});
+
+async function deleteMonitor() {
+  if (!confirm('Delete this monitor and all its ping history?')) return;
+  const monitorId = '{{ monitor.id if monitor else "" }}';
+  const res = await fetch(`/api/monitors/${monitorId}`, {method: 'DELETE'});
+  if (res.ok) window.location.href = '/dashboard';
+}
+
+// Init schedule type toggle
+setScheduleType(scheduleType);
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Log in — DeadManCheck{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <a href="/" class="text-brand-500 font-bold text-2xl">DeadManCheck</a>
+      <h1 class="text-xl font-semibold mt-6">Log in</h1>
+    </div>
+
+    <div id="error" class="hidden bg-red-900/30 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-4"></div>
+
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm text-gray-300 mb-1.5">Email</label>
+        <input type="email" name="email" required autocomplete="email"
+          class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+      </div>
+      <div>
+        <label class="block text-sm text-gray-300 mb-1.5">Password</label>
+        <input type="password" name="password" required autocomplete="current-password"
+          class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+      </div>
+      <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-lg font-medium transition-colors">
+        Log in
+      </button>
+    </form>
+
+    <p class="text-center text-gray-500 text-sm mt-6">
+      No account? <a href="/register" class="text-brand-500 hover:underline">Create one free</a>
+    </p>
+  </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const res = await fetch('/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: form.email.value, password: form.password.value}),
+  });
+  if (res.redirected) {
+    window.location.href = res.url;
+  } else if (!res.ok) {
+    const err = await res.json();
+    const el = document.getElementById('error');
+    el.textContent = err.detail || 'Login failed';
+    el.classList.remove('hidden');
+  }
+});
+</script>
+{% endblock %}

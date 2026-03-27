@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Quickstart — DeadManCheck{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16">
+  <h1 class="text-4xl font-bold mb-3">Quickstart</h1>
+  <p class="text-gray-400 text-lg mb-12">Monitor your first cron job in under 2 minutes.</p>
+
+  {% for step in [
+    {
+      "n": 1,
+      "title": "Create a monitor",
+      "body": "Log in, click <strong>New monitor</strong>, give it a name and set how often your job runs. You'll get a unique ping URL."
+    },
+    {
+      "n": 2,
+      "title": "Add the ping to your job",
+      "body": "Call the ping URL at the end of your job. That's it — if we don't hear from it, we alert you."
+    },
+    {
+      "n": 3,
+      "title": "(Optional) Track duration",
+      "body": "Enable duration monitoring in the monitor settings, then use the two-call pattern. We track how long your job takes and alert you if it runs unexpectedly slow."
+    }
+  ] %}
+  <div class="flex gap-6 mb-12">
+    <div class="flex-shrink-0 w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-sm font-bold">{{ step.n }}</div>
+    <div>
+      <h2 class="text-lg font-semibold mb-2">{{ step.title }}</h2>
+      <p class="text-gray-400">{{ step.body | safe }}</p>
+    </div>
+  </div>
+  {% endfor %}
+
+  <h2 class="text-2xl font-bold mb-6">Code examples</h2>
+
+  {% for example in [
+    {
+      "lang": "Bash / cron",
+      "code": "# Simple heartbeat\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# With duration tracking\ncurl -s https://deadmancheck.io/ping/YOUR-ID/start\n./your_job.sh\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# Report failure\ncurl -s https://deadmancheck.io/ping/YOUR-ID/fail?exit_code=1"
+    },
+    {
+      "lang": "Python",
+      "code": "import httpx\n\nPING_URL = 'https://deadmancheck.io/ping/YOUR-ID'\n\n# At start\nhttpx.get(f'{PING_URL}/start')\n\n# ... your job ...\n\n# On success\nhttpx.get(PING_URL)\n\n# On failure\nhttpx.get(f'{PING_URL}/fail', params={'exit_code': 1})"
+    },
+    {
+      "lang": "GitHub Actions",
+      "code": "- name: Run job\n  run: ./your_job.sh\n\n- name: Ping DeadManCheck\n  if: success()\n  run: curl -s https://deadmancheck.io/ping/YOUR-ID\n\n- name: Report failure\n  if: failure()\n  run: curl -s https://deadmancheck.io/ping/YOUR-ID/fail"
+    },
+    {
+      "lang": "Node.js",
+      "code": "const PING_URL = 'https://deadmancheck.io/ping/YOUR-ID';\n\nawait fetch(`${PING_URL}/start`);\n\ntry {\n  await yourJob();\n  await fetch(PING_URL);\n} catch (err) {\n  await fetch(`${PING_URL}/fail?exit_code=1`);\n  throw err;\n}"
+    }
+  ] %}
+  <div class="mb-8">
+    <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">{{ example.lang }}</h3>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <pre class="p-5 text-sm text-gray-300 overflow-x-auto"><code>{{ example.code }}</code></pre>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="mt-12 text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+      Start monitoring free →
+    </a>
+  </div>
+</div>
+{% endblock %}

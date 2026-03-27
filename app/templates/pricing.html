@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing — DeadManCheck{% endblock %}
+
+{% block content %}
+<section class="max-w-5xl mx-auto px-6 pt-20 pb-24">
+  <div class="text-center mb-16">
+    <h1 class="text-4xl font-bold mb-4">Simple, honest pricing</h1>
+    <p class="text-gray-400 text-lg">Or <a href="https://github.com/yourusername/deadmancheck" class="text-brand-500 hover:underline">self-host for free</a> — forever.</p>
+  </div>
+
+  <div class="grid md:grid-cols-4 gap-6">
+    {% for plan in [
+      {
+        "name": "Hobby",
+        "price": "Free",
+        "period": "",
+        "monitors": 5,
+        "check_interval": "60s",
+        "history_days": 7,
+        "features": ["Email alerts", "Duration monitoring", "Webhooks"],
+        "cta": "Get started",
+        "href": "/register",
+        "highlight": false
+      },
+      {
+        "name": "Developer",
+        "price": "£9",
+        "period": "/month",
+        "monitors": 50,
+        "check_interval": "30s",
+        "history_days": 30,
+        "features": ["Everything in Hobby", "Slack alerts", "API access", "Email support"],
+        "cta": "Start free trial",
+        "href": "/register?plan=developer",
+        "highlight": false
+      },
+      {
+        "name": "Team",
+        "price": "£29",
+        "period": "/month",
+        "monitors": 200,
+        "check_interval": "10s",
+        "history_days": 90,
+        "features": ["Everything in Developer", "Team members (5)", "PagerDuty integration", "Priority support"],
+        "cta": "Start free trial",
+        "href": "/register?plan=team",
+        "highlight": true
+      },
+      {
+        "name": "Business",
+        "price": "£99",
+        "period": "/month",
+        "monitors": 1000,
+        "check_interval": "10s",
+        "history_days": 365,
+        "features": ["Everything in Team", "Unlimited team members", "SSO", "SLA guarantee", "Dedicated support"],
+        "cta": "Start free trial",
+        "href": "/register?plan=business",
+        "highlight": false
+      }
+    ] %}
+    <div class="relative bg-gray-900 border {% if plan.highlight %}border-brand-500{% else %}border-gray-800{% endif %} rounded-xl p-6 flex flex-col">
+      {% if plan.highlight %}
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <span class="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Most popular</span>
+      </div>
+      {% endif %}
+      <div class="mb-6">
+        <h3 class="font-semibold text-lg mb-1">{{ plan.name }}</h3>
+        <div class="flex items-baseline gap-1">
+          <span class="text-3xl font-bold">{{ plan.price }}</span>
+          <span class="text-gray-400 text-sm">{{ plan.period }}</span>
+        </div>
+      </div>
+      <div class="space-y-3 mb-6 text-sm text-gray-400 flex-1">
+        <div class="flex justify-between">
+          <span>Monitors</span>
+          <span class="text-white font-medium">{{ plan.monitors }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Check interval</span>
+          <span class="text-white font-medium">{{ plan.check_interval }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>History</span>
+          <span class="text-white font-medium">{{ plan.history_days }}d</span>
+        </div>
+        <div class="border-t border-gray-800 pt-3 space-y-2">
+          {% for f in plan.features %}
+          <div class="flex items-center gap-2">
+            <span class="text-brand-500">✓</span>
+            <span>{{ f }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% if plan.price == "Free" %}
+      <a href="{{ plan.href }}" class="block text-center border border-gray-700 hover:border-gray-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm">
+        {{ plan.cta }}
+      </a>
+      {% else %}
+      <button onclick="startCheckout('{{ plan.name | lower }}')"
+        class="w-full text-center {% if plan.highlight %}bg-brand-600 hover:bg-brand-700{% else %}border border-gray-700 hover:border-gray-500{% endif %} text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm cursor-pointer">
+        {{ plan.cta }}
+      </button>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-16 text-center">
+    <h2 class="text-2xl font-bold mb-4">Want to self-host?</h2>
+    <p class="text-gray-400 mb-6 max-w-lg mx-auto">
+      Full source code on GitHub. Deploy on Railway, Render, or your own server in under 10 minutes.
+      Free forever. No limits.
+    </p>
+    <a href="https://github.com/yourusername/deadmancheck" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors inline-block">
+      View on GitHub →
+    </a>
+  </div>
+</section>
+
+<script>
+function startCheckout(plan) {
+  // POST to /billing/checkout — FastAPI will redirect to Stripe or 401 if not logged in.
+  // On 401 (not logged in) redirect to register with plan hint.
+  fetch('/billing/checkout?plan=' + plan, { method: 'POST', redirect: 'manual' })
+    .then(r => {
+      if (r.type === 'opaqueredirect' || r.status === 303 || r.ok) {
+        // Follow the redirect manually isn't possible via fetch for cross-origin Stripe URL.
+        // Use a form POST instead so the browser follows the redirect naturally.
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/billing/checkout?plan=' + plan;
+        document.body.appendChild(form);
+        form.submit();
+      } else if (r.status === 401) {
+        window.location.href = '/register?plan=' + plan;
+      }
+    })
+    .catch(() => {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/billing/checkout?plan=' + plan;
+      document.body.appendChild(form);
+      form.submit();
+    });
+}
+</script>
+{% endblock %}
