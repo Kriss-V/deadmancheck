@@ -1,12 +1,19 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+import secrets
+from datetime import datetime, timedelta, timezone
+
+import resend
+from fastapi import APIRouter, Depends, Form, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.models import User
 from app.services.auth import create_access_token, hash_password, verify_password
+
+resend.api_key = settings.resend_api_key
 
 router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
@@ -71,3 +78,74 @@ async def logout():
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie("access_token")
     return response
+
+
+@router.get("/forgot-password", response_class=HTMLResponse)
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse("auth/forgot_password.html", {"request": request})
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: Request,
+    email: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    # Always show success to prevent email enumeration
+    if user:
+        token = secrets.token_urlsafe(32)
+        user.reset_token = token
+        user.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        await db.commit()
+
+        reset_url = f"{settings.app_url}/reset-password?token={token}"
+        if settings.resend_api_key:
+            resend.Emails.send({
+                "from": settings.alert_from_email,
+                "to": [email],
+                "subject": "Reset your DeadManCheck password",
+                "html": f"""
+<h2>Reset your password</h2>
+<p>Click the link below to reset your password. This link expires in 1 hour.</p>
+<p><a href="{reset_url}">Reset password →</a></p>
+<p style="color:#6b7280;font-size:12px">If you didn't request this, ignore this email.</p>
+""",
+            })
+
+    return templates.TemplateResponse("auth/forgot_password.html", {
+        "request": request,
+        "success": "If that email is registered, you'll receive a reset link shortly."
+    })
+
+
+@router.get("/reset-password", response_class=HTMLResponse)
+async def reset_password_page(request: Request, token: str = ""):
+    return templates.TemplateResponse("auth/reset_password.html", {"request": request, "token": token})
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request: Request,
+    token: str = Form(...),
+    password: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(User).where(User.reset_token == token))
+    user = result.scalar_one_or_none()
+
+    if not user or not user.reset_token_expires_at or user.reset_token_expires_at < datetime.now(timezone.utc):
+        return templates.TemplateResponse("auth/reset_password.html", {
+            "request": request,
+            "token": token,
+            "error": "This reset link is invalid or has expired."
+        })
+
+    user.hashed_password = hash_password(password)
+    user.reset_token = None
+    user.reset_token_expires_at = None
+    await db.commit()
+
+    return RedirectResponse(url="/login?reset=1", status_code=status.HTTP_302_FOUND)
