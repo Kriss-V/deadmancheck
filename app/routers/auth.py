@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,28 +12,25 @@ router = APIRouter(tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
 
 
-class RegisterForm(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class LoginForm(BaseModel):
-    email: EmailStr
-    password: str
-
-
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("auth/register.html", {"request": request})
 
 
 @router.post("/register")
-async def register(form: RegisterForm, response: Response, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == form.email))
+async def register(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        return templates.TemplateResponse("auth/register.html", {
+            "request": request, "error": "Email already registered"
+        })
 
-    user = User(email=form.email, hashed_password=hash_password(form.password))
+    user = User(email=email, hashed_password=hash_password(password))
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -51,11 +47,18 @@ async def login_page(request: Request):
 
 
 @router.post("/login")
-async def login(form: LoginForm, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == form.email))
+async def login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user or not verify_password(password, user.hashed_password):
+        return templates.TemplateResponse("auth/login.html", {
+            "request": request, "error": "Invalid email or password"
+        })
 
     token = create_access_token(str(user.id))
     response = RedirectResponse(url="/dashboard", status_code=302)

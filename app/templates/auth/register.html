@@ -10,9 +10,11 @@
       <p class="text-gray-400 text-sm">5 monitors free. No credit card.</p>
     </div>
 
-    <div id="error" class="hidden bg-red-900/30 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-4"></div>
+    {% if error %}
+    <div class="bg-red-900/30 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-4">{{ error }}</div>
+    {% endif %}
 
-    <form id="registerForm" class="space-y-4">
+    <form id="registerForm" class="space-y-4" method="post" action="/register" enctype="application/x-www-form-urlencoded">
       <div>
         <label class="block text-sm text-gray-300 mb-1.5">Email</label>
         <input type="email" name="email" required autocomplete="email"
@@ -34,28 +36,4 @@
   </div>
 </div>
 
-<script>
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const res = await fetch('/register', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: form.email.value, password: form.password.value}),
-    redirect: 'follow',
-  });
-  if (res.ok || res.redirected) {
-    window.location.href = res.url || '/dashboard';
-  } else {
-    try {
-      const err = await res.json();
-      const el = document.getElementById('error');
-      el.textContent = err.detail || 'Registration failed';
-      el.classList.remove('hidden');
-    } catch {
-      window.location.href = '/dashboard';
-    }
-  }
-});
-</script>
 {% endblock %}
