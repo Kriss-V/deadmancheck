@@ -41,14 +41,19 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({email: form.email.value, password: form.password.value}),
+    redirect: 'follow',
   });
-  if (res.redirected) {
-    window.location.href = res.url;
-  } else if (!res.ok) {
-    const err = await res.json();
-    const el = document.getElementById('error');
-    el.textContent = err.detail || 'Login failed';
-    el.classList.remove('hidden');
+  if (res.ok || res.redirected) {
+    window.location.href = res.url || '/dashboard';
+  } else {
+    try {
+      const err = await res.json();
+      const el = document.getElementById('error');
+      el.textContent = err.detail || 'Login failed';
+      el.classList.remove('hidden');
+    } catch {
+      window.location.href = '/dashboard';
+    }
   }
 });
 </script>
