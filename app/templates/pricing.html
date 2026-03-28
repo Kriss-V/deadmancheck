@@ -123,29 +123,11 @@
 
 <script>
 function startCheckout(plan) {
-  // POST to /billing/checkout — FastAPI will redirect to Stripe or 401 if not logged in.
-  // On 401 (not logged in) redirect to register with plan hint.
-  fetch('/billing/checkout?plan=' + plan, { method: 'POST', redirect: 'manual' })
-    .then(r => {
-      if (r.type === 'opaqueredirect' || r.status === 303 || r.ok) {
-        // Follow the redirect manually isn't possible via fetch for cross-origin Stripe URL.
-        // Use a form POST instead so the browser follows the redirect naturally.
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/billing/checkout?plan=' + plan;
-        document.body.appendChild(form);
-        form.submit();
-      } else if (r.status === 401) {
-        window.location.href = '/register?plan=' + plan;
-      }
-    })
-    .catch(() => {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/billing/checkout?plan=' + plan;
-      document.body.appendChild(form);
-      form.submit();
-    });
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/billing/checkout?plan=' + plan;
+  document.body.appendChild(form);
+  form.submit();
 }
 </script>
 {% endblock %}
