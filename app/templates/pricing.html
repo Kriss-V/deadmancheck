@@ -26,6 +26,7 @@
       {
         "name": "Developer",
         "price": "£9",
+        "price_usd": "~$11",
         "period": "/month",
         "monitors": 50,
         "check_interval": "30s",
@@ -38,6 +39,7 @@
       {
         "name": "Team",
         "price": "£29",
+        "price_usd": "~$37",
         "period": "/month",
         "monitors": 200,
         "check_interval": "10s",
@@ -50,6 +52,7 @@
       {
         "name": "Business",
         "price": "£99",
+        "price_usd": "~$125",
         "period": "/month",
         "monitors": 1000,
         "check_interval": "10s",
@@ -72,6 +75,9 @@
           <span class="text-3xl font-bold">{{ plan.price }}</span>
           <span class="text-gray-400 text-sm">{{ plan.period }}</span>
         </div>
+        {% if plan.price_usd is defined %}
+        <div class="text-gray-500 text-xs mt-1">{{ plan.price_usd }}/month</div>
+        {% endif %}
       </div>
       <div class="space-y-3 mb-6 text-sm text-gray-400 flex-1">
         <div class="flex justify-between">
