@@ -46,7 +46,7 @@ async def register(
 
     if settings.resend_api_key:
         try:
-            resend.emails.send({
+            resend.Emails.send({
                 "from": settings.alert_from_email,
                 "to": [email],
                 "subject": "Welcome to DeadManCheck",
@@ -132,7 +132,7 @@ async def forgot_password(
         logger.info(f"[auth] password reset requested for {email}, resend_key_set={bool(settings.resend_api_key)}, app_url={settings.app_url}")
         if settings.resend_api_key:
             try:
-                resend.emails.send({
+                resend.Emails.send({
                 "from": settings.alert_from_email,
                 "to": [email],
                 "subject": "Reset your DeadManCheck password",

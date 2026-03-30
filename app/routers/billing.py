@@ -100,11 +100,15 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
+    print(f"[webhook] event={event['type']}", flush=True)
+
     if event["type"] == "checkout.session.completed":
         await _handle_checkout_completed(event["data"]["object"], db)
 
     elif event["type"] == "customer.subscription.updated":
-        await _handle_subscription_updated(event["data"]["object"], db)
+        sub = event["data"]["object"]
+        print(f"[webhook] subscription.updated status={sub.get('status')} cancel_at_period_end={sub.get('cancel_at_period_end')} customer={sub.get('customer')}", flush=True)
+        await _handle_subscription_updated(sub, db)
 
     elif event["type"] == "customer.subscription.deleted":
         await _handle_subscription_deleted(event["data"]["object"], db)
@@ -153,7 +157,7 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
             try:
                 import resend
                 resend.api_key = settings.resend_api_key
-                resend.emails.send({
+                resend.Emails.send({
                     "from": settings.alert_from_email,
                     "to": [user.email],
                     "subject": "Your DeadManCheck subscription has been cancelled",
@@ -187,7 +191,7 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
             try:
                 import resend
                 resend.api_key = settings.resend_api_key
-                resend.emails.send({
+                resend.Emails.send({
                     "from": settings.alert_from_email,
                     "to": [user.email],
                     "subject": "Your DeadManCheck subscription has been cancelled",
@@ -232,7 +236,7 @@ async def _handle_subscription_deleted(sub: dict, db: AsyncSession) -> None:
         try:
             import resend
             resend.api_key = settings.resend_api_key
-            resend.emails.send({
+            resend.Emails.send({
                 "from": settings.alert_from_email,
                 "to": [user.email],
                 "subject": "Your DeadManCheck subscription has been cancelled",
