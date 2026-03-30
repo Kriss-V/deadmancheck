@@ -41,7 +41,7 @@ async def send_down_alert(monitor: Monitor, reason: str, db: AsyncSession) -> No
 
     to_email = monitor.alert_email or await _get_user_email(monitor, db)
     if to_email and settings.resend_api_key:
-        resend.Emails.send({
+        resend.emails.send({
             "from": settings.alert_from_email,
             "to": [to_email],
             "subject": subject,
@@ -68,7 +68,7 @@ async def maybe_send_recovery_alert(monitor: Monitor, db: AsyncSession) -> None:
 
     to_email = monitor.alert_email or await _get_user_email(monitor, db)
     if to_email and settings.resend_api_key:
-        resend.Emails.send({
+        resend.emails.send({
             "from": settings.alert_from_email,
             "to": [to_email],
             "subject": subject,
@@ -93,7 +93,7 @@ async def send_duration_anomaly_alert(monitor: Monitor, duration: float, db: Asy
 """
     to_email = monitor.alert_email or await _get_user_email(monitor, db)
     if to_email and settings.resend_api_key:
-        resend.Emails.send({
+        resend.emails.send({
             "from": settings.alert_from_email,
             "to": [to_email],
             "subject": subject,

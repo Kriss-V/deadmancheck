@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -13,6 +14,7 @@ from app.database import get_db
 from app.models import User
 from app.services.auth import create_access_token, hash_password, verify_password
 
+logger = logging.getLogger(__name__)
 resend.api_key = settings.resend_api_key
 
 router = APIRouter(tags=["auth"])
@@ -41,6 +43,31 @@ async def register(
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    if settings.resend_api_key:
+        try:
+            resend.emails.send({
+                "from": settings.alert_from_email,
+                "to": [email],
+                "subject": "Welcome to DeadManCheck",
+                "html": f"""
+<h2>Welcome to DeadManCheck 👋</h2>
+<p>Your account is set up and ready to go.</p>
+<p>Get started by creating your first monitor — it takes about 2 minutes:</p>
+<p><a href="{settings.app_url}/monitors/new">Create your first monitor →</a></p>
+<h3>Quick start</h3>
+<p>Once you've created a monitor, add one line to your cron job:</p>
+<pre style="background:#1f2937;color:#e5e7eb;padding:12px;border-radius:6px;">curl {settings.app_url}/ping/YOUR-MONITOR-UUID</pre>
+<p>For duration tracking, bookend your job:</p>
+<pre style="background:#1f2937;color:#e5e7eb;padding:12px;border-radius:6px;">curl {settings.app_url}/ping/YOUR-MONITOR-UUID/start
+# ... your job ...
+curl {settings.app_url}/ping/YOUR-MONITOR-UUID</pre>
+<p>Questions? Reply to this email anytime.</p>
+<p style="color:#6b7280;font-size:12px">DeadManCheck.io — Cron job monitoring</p>
+""",
+            })
+        except Exception as e:
+            logger.error(f"[auth] failed to send welcome email: {e}")
 
     token = create_access_token(str(user.id))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
@@ -102,8 +129,10 @@ async def forgot_password(
         await db.commit()
 
         reset_url = f"{settings.app_url}/reset-password?token={token}"
+        logger.info(f"[auth] password reset requested for {email}, resend_key_set={bool(settings.resend_api_key)}, app_url={settings.app_url}")
         if settings.resend_api_key:
-            resend.Emails.send({
+            try:
+                resend.emails.send({
                 "from": settings.alert_from_email,
                 "to": [email],
                 "subject": "Reset your DeadManCheck password",
@@ -113,7 +142,10 @@ async def forgot_password(
 <p><a href="{reset_url}">Reset password →</a></p>
 <p style="color:#6b7280;font-size:12px">If you didn't request this, ignore this email.</p>
 """,
-            })
+                })
+                logger.info(f"[auth] password reset email sent to {email}")
+            except Exception as e:
+                logger.error(f"[auth] failed to send password reset email: {e}")
 
     return templates.TemplateResponse("auth/forgot_password.html", {
         "request": request,
