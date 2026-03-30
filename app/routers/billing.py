@@ -143,6 +143,43 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
     if not user:
         return
 
+    # Detect cancellation scheduled (cancel_at_period_end=True) or immediate cancel (status=canceled)
+    cancel_at_period_end = sub.get("cancel_at_period_end", False)
+    status = sub.get("status", "")
+
+    if status == "canceled" or (cancel_at_period_end and status == "active"):
+        user.plan = "free"
+        user.stripe_subscription_id = None
+        await db.commit()
+        logger.info("User %s downgraded to free (subscription cancelled)", user.email)
+
+        if settings.resend_api_key:
+            try:
+                import resend
+                resend.api_key = settings.resend_api_key
+                resend.emails.send({
+                    "from": settings.alert_from_email,
+                    "to": [user.email],
+                    "subject": "Your DeadManCheck subscription has been cancelled",
+                    "html": f"""
+<h2>Subscription cancelled</h2>
+<p>Your DeadManCheck subscription has been cancelled and your account has been downgraded to the free plan.</p>
+<h3>What this means</h3>
+<ul>
+  <li>You can keep up to <strong>5 monitors</strong></li>
+  <li>Monitors above the free limit will stop alerting</li>
+  <li>Your data and history are preserved</li>
+</ul>
+<p>Changed your mind? You can resubscribe at any time:</p>
+<p><a href="{settings.app_url}/pricing">Resubscribe →</a></p>
+<p>If you cancelled because something wasn't working or you have feedback, reply to this email — we'd love to hear from you.</p>
+<p style="color:#6b7280;font-size:12px">DeadManCheck.io — Cron job monitoring</p>
+""",
+                })
+            except Exception as e:
+                logger.error(f"[billing] failed to send cancellation email: {e}")
+        return
+
     plan = _plan_from_subscription(sub)
     user.plan = plan
     user.stripe_subscription_id = sub["id"]
