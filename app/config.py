@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     plan_free_monitors: int = 5
-    plan_developer_monitors: int = 50
+    plan_developer_monitors: int = 100
     plan_team_monitors: int = 200
     plan_business_monitors: int = 1000
 
