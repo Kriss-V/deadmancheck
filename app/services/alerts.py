@@ -104,6 +104,89 @@ async def send_duration_anomaly_alert(monitor: Monitor, duration: float, db: Asy
     await _dispatch_channels(monitor, event="duration_anomaly", text=text)
 
 
+# ── Uptime alerts ─────────────────────────────────────────────────────────────
+
+async def send_uptime_down_alert(monitor, status_code, error, db: AsyncSession) -> None:
+    if monitor.alert_sent_at:
+        return
+
+    from datetime import datetime, timezone
+    monitor.alert_sent_at = datetime.now(timezone.utc)
+    await db.commit()
+
+    reason = f"Status code: {status_code}" if status_code else f"Error: {error}"
+    subject = f"[DeadManCheck] {monitor.name} is DOWN"
+    html_body = f"""
+<h2 style="color:#dc2626">⚠ {monitor.name} is DOWN</h2>
+<p>{reason}</p>
+<p>URL: <a href="{monitor.url}">{monitor.url}</a></p>
+<hr>
+<p style="color:#6b7280;font-size:12px">DeadManCheck.io — Uptime monitoring</p>
+"""
+    text = f"⚠ {monitor.name} is DOWN\n{reason}\nURL: {monitor.url}"
+
+    to_email = monitor.alert_email or await _get_uptime_user_email(monitor, db)
+    if to_email and settings.resend_api_key:
+        resend.Emails.send({
+            "from": settings.alert_from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+        })
+
+    await _dispatch_uptime_channels(monitor, event="down", text=text)
+
+
+async def maybe_send_uptime_recovery(monitor, db: AsyncSession) -> None:
+    if not monitor.alert_on_recovery:
+        return
+
+    subject = f"[DeadManCheck] {monitor.name} is back UP"
+    html_body = f"""
+<h2 style="color:#16a34a">✓ {monitor.name} is back UP</h2>
+<p>URL: <a href="{monitor.url}">{monitor.url}</a></p>
+<p>Response time: {monitor.last_response_ms:.0f}ms</p>
+"""
+    text = f"✓ {monitor.name} is back UP\nURL: {monitor.url}"
+
+    to_email = monitor.alert_email or await _get_uptime_user_email(monitor, db)
+    if to_email and settings.resend_api_key:
+        resend.Emails.send({
+            "from": settings.alert_from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+        })
+
+    await _dispatch_uptime_channels(monitor, event="up", text=text)
+
+
+async def _dispatch_uptime_channels(monitor, event: str, text: str) -> None:
+    async with httpx.AsyncClient(timeout=10) as client:
+        if monitor.alert_webhook_url:
+            try:
+                await client.post(monitor.alert_webhook_url, json={"event": event, "monitor": {"name": monitor.name, "url": monitor.url}})
+            except Exception:
+                pass
+        if monitor.slack_webhook_url:
+            await _send_slack(client, monitor.slack_webhook_url, text)
+        if monitor.discord_webhook_url:
+            await _send_discord(client, monitor.discord_webhook_url, text)
+        if monitor.telegram_bot_token and monitor.telegram_chat_id:
+            await _send_telegram(client, monitor.telegram_bot_token, monitor.telegram_chat_id, text)
+        if monitor.pagerduty_key and event == "down":
+            await _send_pagerduty(client, monitor, event)
+        if monitor.pagerduty_key and event == "up":
+            await _resolve_pagerduty(client, monitor)
+
+
+async def _get_uptime_user_email(monitor, db: AsyncSession) -> str | None:
+    from sqlalchemy import select
+    from app.models import User
+    result = await db.execute(select(User.email).where(User.id == monitor.user_id))
+    return result.scalar_one_or_none()
+
+
 # ── Channel dispatcher ────────────────────────────────────────────────────────
 
 async def _dispatch_channels(monitor: Monitor, event: str, text: str) -> None:

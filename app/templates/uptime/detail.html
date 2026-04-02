@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ monitor.name }} — Uptime Monitor{% endblock %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <a href="/uptime" class="text-gray-500 hover:text-white text-sm transition-colors">← Uptime monitors</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-8">
+    <div class="flex items-center gap-4">
+      {% if monitor.is_paused %}
+      <span class="w-4 h-4 bg-gray-600 rounded-full flex-shrink-0"></span>
+      {% elif monitor.status == 'up' %}
+      <span class="w-4 h-4 bg-green-500 rounded-full flex-shrink-0 animate-pulse"></span>
+      {% elif monitor.status == 'down' %}
+      <span class="w-4 h-4 bg-red-500 rounded-full flex-shrink-0"></span>
+      {% else %}
+      <span class="w-4 h-4 bg-gray-500 rounded-full flex-shrink-0"></span>
+      {% endif %}
+      <div>
+        <h1 class="text-2xl font-bold">{{ monitor.name }}</h1>
+        <a href="{{ monitor.url }}" target="_blank" class="text-gray-400 text-sm font-mono hover:text-brand-500 transition-colors">{{ monitor.url }}</a>
+      </div>
+    </div>
+    <a href="/uptime/{{ monitor.id }}/edit" class="border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-colors">
+      Edit
+    </a>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold {% if monitor.status == 'up' %}text-green-400{% elif monitor.status == 'down' %}text-red-400{% else %}text-gray-400{% endif %}">
+        {% if monitor.status == 'up' %}Up{% elif monitor.status == 'down' %}Down{% else %}—{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">Status</div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-white">
+        {% if uptime_pct is not none %}{{ uptime_pct }}%{% else %}—{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">Uptime (24h)</div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-white">
+        {% if monitor.last_response_ms %}{{ monitor.last_response_ms|int }}ms{% else %}—{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">Response time</div>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-white">
+        {% if monitor.interval_seconds >= 3600 %}{{ monitor.interval_seconds // 3600 }}h
+        {% elif monitor.interval_seconds >= 60 %}{{ monitor.interval_seconds // 60 }}m
+        {% else %}{{ monitor.interval_seconds }}s{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">Check interval</div>
+    </div>
+  </div>
+
+  <!-- Check history -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+      <h2 class="font-semibold">Check history</h2>
+      <span class="text-xs text-gray-500">Last 50 checks</span>
+    </div>
+
+    {% if checks %}
+    <!-- Uptime bar -->
+    <div class="px-6 py-4 border-b border-gray-800">
+      <div class="flex gap-0.5">
+        {% for check in checks|reverse %}
+        <div class="flex-1 h-8 rounded-sm {% if check.is_up %}bg-green-500{% else %}bg-red-500{% endif %}"
+          title="{{ check.checked_at.strftime('%Y-%m-%d %H:%M') }} — {% if check.is_up %}Up ({{ check.response_ms|int if check.response_ms else '?' }}ms){% else %}Down{% if check.error %}: {{ check.error }}{% elif check.status_code %} ({{ check.status_code }}){% endif %}{% endif %}">
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="divide-y divide-gray-800">
+      {% for check in checks %}
+      <div class="px-6 py-3 flex items-center justify-between text-sm">
+        <div class="flex items-center gap-3">
+          {% if check.is_up %}
+          <span class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
+          <span class="text-green-400 font-medium">Up</span>
+          {% else %}
+          <span class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+          <span class="text-red-400 font-medium">Down</span>
+          {% endif %}
+          {% if check.error %}
+          <span class="text-gray-500 text-xs">{{ check.error }}</span>
+          {% elif check.status_code %}
+          <span class="text-gray-500 text-xs">HTTP {{ check.status_code }}</span>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-6 text-gray-500 text-xs">
+          {% if check.response_ms %}
+          <span>{{ check.response_ms|int }}ms</span>
+          {% endif %}
+          <span>{{ check.checked_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="px-6 py-12 text-center text-gray-500">
+      <p>No checks yet — first check runs within 60 seconds.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

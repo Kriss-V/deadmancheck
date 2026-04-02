@@ -29,3 +29,4 @@ class User(Base):
 
     monitors: Mapped[list["Monitor"]] = relationship("Monitor", back_populates="user", cascade="all, delete-orphan")
     status_pages: Mapped[list["StatusPage"]] = relationship("StatusPage", back_populates="user", cascade="all, delete-orphan")
+    uptime_monitors: Mapped[list["UptimeMonitor"]] = relationship("UptimeMonitor", back_populates="user", cascade="all, delete-orphan")

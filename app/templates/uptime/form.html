@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if monitor else 'New' }} Uptime Monitor — DeadManCheck{% endblock %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <a href="/uptime" class="text-gray-500 hover:text-white text-sm transition-colors">← Back</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-10">
+  <h1 class="text-2xl font-bold mb-8">{{ 'Edit uptime monitor' if monitor else 'New uptime monitor' }}</h1>
+
+  <form id="uptimeForm" class="space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+      <input type="text" name="name" value="{{ monitor.name if monitor else '' }}" required
+        placeholder="e.g. Production API"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">URL</label>
+      <input type="url" name="url" value="{{ monitor.url if monitor else '' }}" required
+        placeholder="https://yoursite.com/health"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors font-mono">
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Check interval</label>
+        <select name="interval_seconds" class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+          {% for val, label in [(60, 'Every 1 minute'), (300, 'Every 5 minutes'), (600, 'Every 10 minutes'), (900, 'Every 15 minutes'), (1800, 'Every 30 minutes'), (3600, 'Every hour')] %}
+          <option value="{{ val }}" {% if monitor and monitor.interval_seconds == val %}selected{% elif not monitor and val == 300 %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Timeout</label>
+        <select name="timeout_seconds" class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+          {% for val, label in [(5, '5 seconds'), (10, '10 seconds'), (15, '15 seconds'), (30, '30 seconds')] %}
+          <option value="{{ val }}" {% if monitor and monitor.timeout_seconds == val %}selected{% elif not monitor and val == 10 %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Expected status code</label>
+      <input type="number" name="expected_status_code" value="{{ monitor.expected_status_code if monitor else 200 }}"
+        class="w-32 bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+      <p class="text-xs text-gray-500 mt-1">Alert if response code doesn't match. Use 200 for most cases.</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Alert email <span class="text-gray-500 font-normal">(leave blank to use account email)</span></label>
+      <input type="email" name="alert_email" value="{{ monitor.alert_email if monitor and monitor.alert_email else '' }}"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <!-- Additional alert channels -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+      <h3 class="font-medium text-sm">Additional alert channels <span class="text-gray-500 font-normal">(optional)</span></h3>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">Webhook URL</label>
+        <input type="url" name="alert_webhook_url" value="{{ monitor.alert_webhook_url if monitor and monitor.alert_webhook_url else '' }}"
+          placeholder="https://your-endpoint.com/hook"
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">Slack incoming webhook URL</label>
+        <input type="url" name="slack_webhook_url" value="{{ monitor.slack_webhook_url if monitor and monitor.slack_webhook_url else '' }}"
+          placeholder="https://hooks.slack.com/services/..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">Discord webhook URL</label>
+        <input type="url" name="discord_webhook_url" value="{{ monitor.discord_webhook_url if monitor and monitor.discord_webhook_url else '' }}"
+          placeholder="https://discord.com/api/webhooks/..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Telegram bot token</label>
+          <input type="text" name="telegram_bot_token" value="{{ monitor.telegram_bot_token if monitor and monitor.telegram_bot_token else '' }}"
+            placeholder="123456:ABC-DEF..."
+            class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Telegram chat ID</label>
+          <input type="text" name="telegram_chat_id" value="{{ monitor.telegram_chat_id if monitor and monitor.telegram_chat_id else '' }}"
+            placeholder="-1001234567890"
+            class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">PagerDuty integration key</label>
+        <input type="text" name="pagerduty_key" value="{{ monitor.pagerduty_key if monitor and monitor.pagerduty_key else '' }}"
+          placeholder="abc123def456..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+        {{ 'Save changes' if monitor else 'Create monitor' }}
+      </button>
+      <a href="/uptime" class="text-gray-500 hover:text-white text-sm transition-colors">Cancel</a>
+      {% if monitor %}
+      <button type="button" onclick="deleteMonitor()" class="ml-auto text-red-400 hover:text-red-300 text-sm transition-colors">Delete</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('uptimeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    name: form.name.value,
+    url: form.url.value,
+    interval_seconds: parseInt(form.interval_seconds.value),
+    timeout_seconds: parseInt(form.timeout_seconds.value),
+    expected_status_code: parseInt(form.expected_status_code.value),
+    alert_email: form.alert_email.value || null,
+    alert_webhook_url: form.alert_webhook_url.value || null,
+    slack_webhook_url: form.slack_webhook_url.value || null,
+    discord_webhook_url: form.discord_webhook_url.value || null,
+    telegram_bot_token: form.telegram_bot_token.value || null,
+    telegram_chat_id: form.telegram_chat_id.value || null,
+    pagerduty_key: form.pagerduty_key.value || null,
+    alert_on_recovery: true,
+  };
+
+  const monitorId = '{{ monitor.id if monitor else "" }}';
+  const url = monitorId ? `/api/uptime/${monitorId}` : '/api/uptime';
+  const method = monitorId ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method,
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+
+  if (res.ok) {
+    window.location.href = '/uptime';
+  } else {
+    const err = await res.json();
+    alert(err.detail || 'Something went wrong');
+  }
+});
+
+async function deleteMonitor() {
+  if (!confirm('Delete this uptime monitor?')) return;
+  const monitorId = '{{ monitor.id if monitor else "" }}';
+  const res = await fetch(`/api/uptime/${monitorId}`, {method: 'DELETE'});
+  if (res.ok) window.location.href = '/uptime';
+}
+</script>
+{% endblock %}
