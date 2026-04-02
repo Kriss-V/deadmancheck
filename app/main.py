@@ -48,3 +48,13 @@ async def pricing(request: Request):
 @app.get("/docs/quickstart", response_class=HTMLResponse)
 async def quickstart(request: Request):
     return templates.TemplateResponse("docs/quickstart.html", {"request": request})
+
+
+@app.get("/compare/vs-healthchecks", response_class=HTMLResponse)
+async def vs_healthchecks(request: Request):
+    return templates.TemplateResponse("compare/vs-healthchecks.html", {"request": request})
+
+
+@app.get("/compare/vs-cronitor", response_class=HTMLResponse)
+async def vs_cronitor(request: Request):
+    return templates.TemplateResponse("compare/vs-cronitor.html", {"request": request})

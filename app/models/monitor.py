@@ -42,6 +42,13 @@ class Monitor(Base):
     alert_webhook_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     alert_on_recovery: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # Additional alert channels
+    slack_webhook_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    discord_webhook_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    telegram_bot_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    telegram_chat_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    pagerduty_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     is_paused: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

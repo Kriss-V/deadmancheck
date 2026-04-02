@@ -112,6 +112,11 @@ class MonitorCreate(BaseModel):
     expect_duration_enabled: bool = False
     expect_duration_max_seconds: int | None = None
     duration_alert_pct: int = 200
+    slack_webhook_url: str | None = None
+    discord_webhook_url: str | None = None
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
+    pagerduty_key: str | None = None
 
 
 @router.post("/api/monitors")
