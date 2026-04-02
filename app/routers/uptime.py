@@ -12,7 +12,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import UptimeCheck, UptimeMonitor, User
+from app.models import Monitor, UptimeCheck, UptimeMonitor, User
+from app.routers.monitors import PLAN_LIMITS, _count_all_monitors
 from app.services.auth import get_current_user
 
 router = APIRouter(tags=["uptime"])
@@ -116,6 +117,13 @@ async def create_uptime_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    # Enforce shared plan limit (cron + uptime combined)
+    limit = PLAN_LIMITS.get(user.plan, 5)
+    if limit is not None:
+        count = await _count_all_monitors(user.id, db)
+        if count >= limit:
+            raise HTTPException(status_code=402, detail=f"Plan limit reached ({limit} monitors). Upgrade to add more.")
+
     now = datetime.now(timezone.utc)
     monitor = UptimeMonitor(
         id=uuid.uuid4(),

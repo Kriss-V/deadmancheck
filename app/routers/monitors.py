@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.models import Monitor, Ping, User
+from app.models import Monitor, Ping, UptimeMonitor, User
 from app.services.auth import get_current_user
 from app.services.scheduler import compute_next_expected
 
@@ -24,8 +24,14 @@ PLAN_LIMITS = {
     "free": settings.plan_free_monitors,
     "developer": settings.plan_developer_monitors,
     "team": settings.plan_team_monitors,
-    "business": settings.plan_business_monitors,
+    "business": None,  # unlimited
 }
+
+
+async def _count_all_monitors(user_id, db: AsyncSession) -> int:
+    cron = (await db.execute(select(func.count()).where(Monitor.user_id == user_id))).scalar()
+    uptime = (await db.execute(select(func.count()).where(UptimeMonitor.user_id == user_id))).scalar()
+    return cron + uptime
 
 
 # ── HTML views ──────────────────────────────────────────────────────────────
@@ -40,11 +46,14 @@ async def dashboard(
         select(Monitor).where(Monitor.user_id == user.id).order_by(Monitor.created_at.desc())
     )
     monitors = result.scalars().all()
+    plan_limit = PLAN_LIMITS.get(user.plan, 5)
+    total_count = await _count_all_monitors(user.id, db)
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
         "user": user,
         "monitors": monitors,
-        "plan_limit": PLAN_LIMITS.get(user.plan, 5),
+        "plan_limit": plan_limit,
+        "total_count": total_count,
     })
 
 
@@ -125,14 +134,12 @@ async def create_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Enforce plan limit
-    count_result = await db.execute(
-        select(func.count()).where(Monitor.user_id == user.id)
-    )
-    count = count_result.scalar()
+    # Enforce plan limit (shared pool: cron + uptime)
     limit = PLAN_LIMITS.get(user.plan, 5)
-    if count >= limit:
-        raise HTTPException(status_code=402, detail=f"Plan limit reached ({limit} monitors). Upgrade to add more.")
+    if limit is not None:
+        count = await _count_all_monitors(user.id, db)
+        if count >= limit:
+            raise HTTPException(status_code=402, detail=f"Plan limit reached ({limit} monitors). Upgrade to add more.")
 
     monitor = Monitor(
         user_id=user.id,

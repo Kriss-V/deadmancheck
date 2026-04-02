@@ -27,9 +27,9 @@
   <div class="flex items-center justify-between mb-8">
     <div>
       <h1 class="text-2xl font-bold">Monitors</h1>
-      <p class="text-gray-400 text-sm mt-1">{{ monitors|length }} / {{ plan_limit }} monitors used</p>
+      <p class="text-gray-400 text-sm mt-1">{{ total_count }} / {{ plan_limit if plan_limit else 'Unlimited' }} monitors used</p>
     </div>
-    {% if monitors|length < plan_limit %}
+    {% if plan_limit is none or total_count < plan_limit %}
     <a href="/monitors/new" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors text-sm">
       + New monitor
     </a>
