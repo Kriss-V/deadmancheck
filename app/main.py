@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.routers import auth, billing, monitors, ping, status_pages, uptime
 from app.services.redis_client import close_redis, init_redis
@@ -20,6 +21,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="DeadManCheck", lifespan=lifespan, docs_url=None, redoc_url=None)
+
+Instrumentator().instrument(app).expose(app)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
