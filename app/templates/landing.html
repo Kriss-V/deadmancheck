@@ -12,7 +12,7 @@
     <span class="text-brand-500">cron jobs go silent</span>
   </h1>
   <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-    DeadManCheck monitors your scheduled tasks and alerts you when they stop running — or when they run but take <em>too long</em>. The only monitor that catches both.
+    DeadManCheck alerts you when jobs stop running, run too long, or run — but do nothing. The only monitor that catches all three.
   </p>
   <div class="flex justify-center gap-4 flex-wrap">
     <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors">
@@ -23,6 +23,31 @@
     </a>
   </div>
   <p class="text-gray-500 text-sm mt-4">Free for 5 monitors. No credit card needed.</p>
+</section>
+
+<!-- Assertions callout -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-brand-500/30 rounded-2xl p-8">
+    <div class="flex items-start gap-6">
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-3xl">🔬</span>
+          <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Only on DeadManCheck</span>
+        </div>
+        <h2 class="text-2xl font-bold mb-3">Your backup ran. It exported 0 rows. You found out three weeks later.</h2>
+        <p class="text-gray-400 mb-4">Every other monitoring tool only asks <em>did it run?</em> DeadManCheck also asks <em>did it actually do anything?</em> Send a JSON payload with your ping and define assertion rules. If the output doesn't match — you get alerted immediately, even though the job technically succeeded.</p>
+        <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm text-gray-300 overflow-x-auto">
+          <div class="text-gray-500 mb-2"># Ping with output — assertions evaluated server-side</div>
+          <div><span class="text-brand-500">curl</span> -X POST <span class="text-yellow-400">https://deadmancheck.io/ping/YOUR-ID</span> \</div>
+          <div class="pl-4">-H <span class="text-green-400">"Content-Type: application/json"</span> \</div>
+          <div class="pl-4">-d <span class="text-green-400">'{"rows_exported": 1500, "errors": 0}'</span></div>
+          <div class="mt-3 text-gray-500"># Rule: rows_exported &gt; 0 → ✓ pass</div>
+          <div class="text-gray-500"># Rule: errors == 0 → ✓ pass</div>
+          <div class="text-gray-500"># Rule: rows_exported &gt; 0, got 0 → ⚠ alert fired</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- Comparisons -->
@@ -74,6 +99,12 @@
 
   <div class="grid md:grid-cols-3 gap-8">
     {% for feature in [
+      {
+        "icon": "🔬",
+        "title": "Output assertions",
+        "desc": "Send a JSON payload with your ping. Define rules like rows_exported > 0. Get alerted if the job ran but did nothing — the failure mode no other tool catches.",
+        "badge": "Unique"
+      },
       {
         "icon": "⏱",
         "title": "Duration monitoring",
