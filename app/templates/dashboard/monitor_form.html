@@ -95,6 +95,28 @@
       </div>
     </div>
 
+    <!-- Assertions -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 {% if user.plan == 'free' %}opacity-60{% endif %}">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <h3 class="font-medium text-sm">Output assertions <span class="text-gray-500 font-normal">(optional)</span></h3>
+          {% if user.plan == 'free' %}
+          <a href="/pricing" class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full hover:bg-brand-500/30 transition-colors">Developer+ →</a>
+          {% endif %}
+        </div>
+        {% if user.plan != 'free' %}
+        <a href="#" onclick="addAssertionRow(); return false;" class="text-brand-500 hover:text-brand-400 text-xs transition-colors">+ Add rule</a>
+        {% endif %}
+      </div>
+      <p class="text-xs text-gray-500 mb-4">POST a JSON body with your ping. Alert if the output doesn't match your rules — catch jobs that run but do nothing.</p>
+      {% if user.plan != 'free' %}
+      <div id="assertionRules" class="space-y-2"></div>
+      <p class="text-xs text-gray-600 mt-3">Example: <code class="text-gray-500">curl -X POST .../ping/ID -H "Content-Type: application/json" -d '{"rows": 1500}'</code></p>
+      {% else %}
+      <p class="text-xs text-gray-600">Upgrade to Developer to validate your job's output on every ping.</p>
+      {% endif %}
+    </div>
+
     <div>
       <label class="block text-sm font-medium text-gray-300 mb-2">Alert email <span class="text-gray-500 font-normal">(leave blank to use account email)</span></label>
       <input type="email" name="alert_email" value="{{ monitor.alert_email if monitor and monitor.alert_email else '' }}"
@@ -163,6 +185,38 @@
 </div>
 
 <script>
+const EXISTING_ASSERTIONS = {{ monitor.assertions | tojson if monitor and monitor.assertions else '[]' }};
+
+function addAssertionRow(field='', op='>', value='') {
+  const container = document.getElementById('assertionRules');
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-2';
+  row.innerHTML = `
+    <input type="text" placeholder="field" value="${field}"
+      class="flex-1 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-field">
+    <select class="bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none assertion-op">
+      ${['>', '>=', '<', '<=', '==', '!=', 'exists', 'contains'].map(o =>
+        `<option value="${o}" ${o === op ? 'selected' : ''}>${o}</option>`
+      ).join('')}
+    </select>
+    <input type="text" placeholder="value" value="${value}"
+      class="w-28 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-value">
+    <button type="button" onclick="this.parentElement.remove()" class="text-gray-600 hover:text-red-400 transition-colors text-lg leading-none">×</button>
+  `;
+  container.appendChild(row);
+}
+
+function getAssertions() {
+  return Array.from(document.querySelectorAll('#assertionRules > div')).map(row => ({
+    field: row.querySelector('.assertion-field').value.trim(),
+    op: row.querySelector('.assertion-op').value,
+    value: row.querySelector('.assertion-value').value.trim(),
+  })).filter(r => r.field);
+}
+
+// Load existing assertions on edit
+EXISTING_ASSERTIONS.forEach(r => addAssertionRow(r.field, r.op, r.value));
+
 let scheduleType = '{{ monitor.schedule_type if monitor else "period" }}';
 
 function setScheduleType(type) {
@@ -199,6 +253,7 @@ document.getElementById('monitorForm').addEventListener('submit', async (e) => {
     telegram_bot_token: form.telegram_bot_token.value || null,
     telegram_chat_id: form.telegram_chat_id.value || null,
     pagerduty_key: form.pagerduty_key.value || null,
+    assertions: JSON.stringify(getAssertions()) || null,
   };
 
   const monitorId = '{{ monitor.id if monitor else "" }}';

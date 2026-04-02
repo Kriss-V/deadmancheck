@@ -88,17 +88,21 @@
           <th class="text-left px-5 py-3">Time</th>
           <th class="text-left px-5 py-3">Kind</th>
           <th class="text-left px-5 py-3">Duration</th>
+          <th class="text-left px-5 py-3">Assertions</th>
           <th class="text-left px-5 py-3">Exit code</th>
           <th class="text-left px-5 py-3">Source</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-800">
         {% for p in pings %}
-        <tr class="hover:bg-gray-800/50 transition-colors {% if p.duration_anomaly %}bg-yellow-900/10{% endif %}">
+        {% set assertion_data = p.assertion_results | fromjson if p.assertion_results else [] %}
+        <tr class="hover:bg-gray-800/50 transition-colors {% if p.duration_anomaly or p.kind == 'assertion_fail' %}bg-yellow-900/10{% endif %}">
           <td class="px-5 py-3 font-mono text-xs text-gray-300">{{ p.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
           <td class="px-5 py-3">
             {% if p.kind == 'success' %}
             <span class="text-brand-500">✓ success</span>
+            {% elif p.kind == 'assertion_fail' %}
+            <span class="text-yellow-400">⚠ assertion fail</span>
             {% elif p.kind == 'start' %}
             <span class="text-blue-400">▶ start</span>
             {% elif p.kind == 'fail' %}
@@ -111,6 +115,15 @@
                 {{ '%.2f'|format(p.duration_seconds) }}s
                 {% if p.duration_anomaly %} ⚠{% endif %}
               </span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-5 py-3 text-xs">
+            {% if assertion_data %}
+              {% for r in assertion_data %}
+              <div class="{{ 'text-green-400' if r.passed else 'text-red-400' }}">
+                {{ '✓' if r.passed else '✗' }} {{ r.field }} {{ r.op }} {{ r.value }}{% if not r.passed %} <span class="text-gray-500">(got {{ r.actual }})</span>{% endif %}
+              </div>
+              {% endfor %}
             {% else %}—{% endif %}
           </td>
           <td class="px-5 py-3 font-mono text-xs text-gray-400">{{ p.exit_code if p.exit_code is not none else '—' }}</td>

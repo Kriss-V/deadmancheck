@@ -27,4 +27,7 @@ class Ping(Base):
     output: Mapped[str | None] = mapped_column(Text, nullable=True)  # last 10k chars of job output
     source_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
 
+    # Assertion results: JSON array of {field, op, value, actual, passed}
+    assertion_results: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     monitor: Mapped["Monitor"] = relationship("Monitor", back_populates="pings")

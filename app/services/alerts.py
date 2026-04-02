@@ -104,6 +104,43 @@ async def send_duration_anomaly_alert(monitor: Monitor, duration: float, db: Asy
     await _dispatch_channels(monitor, event="duration_anomaly", text=text)
 
 
+# ── Assertion alerts ──────────────────────────────────────────────────────────
+
+async def send_assertion_failed_alert(monitor: Monitor, failures: list, payload: dict, db: AsyncSession) -> None:
+    import json
+    failure_lines = "\n".join(
+        f"  • {f['field']} {f['op']} {f['value']} — got {f['actual']}"
+        for f in failures
+    )
+    failure_html = "".join(
+        f"<li><code>{f['field']} {f['op']} {f['value']}</code> — got <strong>{f['actual']}</strong></li>"
+        for f in failures
+    )
+
+    subject = f"[DeadManCheck] {monitor.name} — assertion failed"
+    html_body = f"""
+<h2 style="color:#d97706">⚠ {monitor.name} — assertion failed</h2>
+<p>The job ran successfully but its output failed your assertion rules:</p>
+<ul style="font-family:monospace">{failure_html}</ul>
+<p>Payload received: <code>{json.dumps(payload)[:500]}</code></p>
+<p><a href="{settings.app_url}/monitors/{monitor.id}">View monitor →</a></p>
+<hr>
+<p style="color:#6b7280;font-size:12px">DeadManCheck.io — Cron job monitoring</p>
+"""
+    text = f"⚠ {monitor.name} — assertion failed\n\nFailed rules:\n{failure_lines}\n\n{settings.app_url}/monitors/{monitor.id}"
+
+    to_email = monitor.alert_email or await _get_user_email(monitor, db)
+    if to_email and settings.resend_api_key:
+        resend.Emails.send({
+            "from": settings.alert_from_email,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+        })
+
+    await _dispatch_channels(monitor, event="assertion_failed", text=text)
+
+
 # ── Uptime alerts ─────────────────────────────────────────────────────────────
 
 async def send_uptime_down_alert(monitor, status_code, error, db: AsyncSession) -> None:
@@ -203,7 +240,7 @@ async def _dispatch_channels(monitor: Monitor, event: str, text: str) -> None:
         if monitor.telegram_bot_token and monitor.telegram_chat_id:
             await _send_telegram(client, monitor.telegram_bot_token, monitor.telegram_chat_id, text)
 
-        if monitor.pagerduty_key and event in ("down", "duration_anomaly"):
+        if monitor.pagerduty_key and event in ("down", "duration_anomaly", "assertion_failed"):
             await _send_pagerduty(client, monitor, event)
 
         if monitor.pagerduty_key and event == "up":

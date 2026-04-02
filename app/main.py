@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -26,6 +27,7 @@ Instrumentator().instrument(app).expose(app)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
+templates.env.filters["fromjson"] = json.loads
 
 app.include_router(ping.router)
 app.include_router(auth.router)

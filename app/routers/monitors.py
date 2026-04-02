@@ -126,6 +126,7 @@ class MonitorCreate(BaseModel):
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
     pagerduty_key: str | None = None
+    assertions: str | None = None
 
 
 @router.post("/api/monitors")

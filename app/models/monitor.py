@@ -49,6 +49,9 @@ class Monitor(Base):
     telegram_chat_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     pagerduty_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # Assertions: JSON array of {field, op, value} rules evaluated against ping payload
+    assertions: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     is_paused: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

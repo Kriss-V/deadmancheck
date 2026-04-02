@@ -9,7 +9,12 @@ Each monitor gets a unique UUID. Jobs call:
 Duration tracking:
   If a /start was received, the next /ping or /success records the elapsed time.
   If duration exceeds expect_duration_max_seconds or >duration_alert_pct% of avg, an anomaly alert fires.
+
+Assertions:
+  POST with JSON body to validate job output. e.g. {"rows_exported": 1500}
+  Rules defined on the monitor are evaluated; failures trigger an alert.
 """
+import json
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -21,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models import Monitor, Ping
 from app.services.alerts import maybe_send_recovery_alert
+from app.services.assertions import all_passed, evaluate_assertions, failed_results
 from app.services.redis_client import START_PING_TTL_SECONDS, get_redis
 from app.services.scheduler import compute_next_expected
 
@@ -96,14 +102,33 @@ async def ping_success(
         _update_rolling_avg(monitor, duration)
         monitor.last_duration_seconds = duration
 
+    # Evaluate assertions if JSON body provided (Developer+ only)
+    assertion_results = []
+    payload = {}
+    content_type = request.headers.get("content-type", "")
+    if request.method == "POST" and "application/json" in content_type:
+        try:
+            payload = await request.json()
+            from app.models import User
+            from sqlalchemy import select as sa_select
+            user_result = await db.execute(sa_select(User).where(User.id == monitor.user_id))
+            user = user_result.scalar_one_or_none()
+            if isinstance(payload, dict) and monitor.assertions and user and user.plan != "free":
+                assertion_results = evaluate_assertions(monitor.assertions, payload)
+        except Exception:
+            pass
+
+    assertion_failed = bool(assertion_results) and not all_passed(assertion_results)
+
     ping = Ping(
         monitor_id=monitor.id,
-        kind="success",
+        kind="success" if not assertion_failed else "assertion_fail",
         duration_seconds=duration,
         duration_anomaly=int(anomaly),
         exit_code=exit_code,
         output=(output or "")[:10000] if output else None,
         source_ip=request.client.host if request.client else None,
+        assertion_results=json.dumps(assertion_results) if assertion_results else None,
     )
 
     monitor.status = "up"
@@ -116,11 +141,22 @@ async def ping_success(
     if was_late:
         await maybe_send_recovery_alert(monitor, db)
 
+    if anomaly:
+        from app.services.alerts import send_duration_anomaly_alert
+        await send_duration_anomaly_alert(monitor, duration, db)
+
+    if assertion_failed:
+        from app.services.alerts import send_assertion_failed_alert
+        await send_assertion_failed_alert(monitor, failed_results(assertion_results), payload, db)
+
     response: dict = {"status": "ok"}
     if duration is not None:
         response["duration_seconds"] = round(duration, 2)
     if anomaly:
         response["warning"] = "duration_anomaly"
+    if assertion_failed:
+        response["warning"] = "assertion_failed"
+        response["failed_assertions"] = failed_results(assertion_results)
     return response
 
 
