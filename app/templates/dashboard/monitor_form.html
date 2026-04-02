@@ -105,8 +105,49 @@
     <div>
       <label class="block text-sm font-medium text-gray-300 mb-2">Webhook URL <span class="text-gray-500 font-normal">(optional)</span></label>
       <input type="url" name="alert_webhook_url" value="{{ monitor.alert_webhook_url if monitor and monitor.alert_webhook_url else '' }}"
-        placeholder="https://hooks.slack.com/..."
+        placeholder="https://your-endpoint.com/hook"
         class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <!-- Additional alert channels -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+      <h3 class="font-medium text-sm">Additional alert channels <span class="text-gray-500 font-normal">(optional)</span></h3>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">Slack incoming webhook URL</label>
+        <input type="url" name="slack_webhook_url" value="{{ monitor.slack_webhook_url if monitor and monitor.slack_webhook_url else '' }}"
+          placeholder="https://hooks.slack.com/services/..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">Discord webhook URL</label>
+        <input type="url" name="discord_webhook_url" value="{{ monitor.discord_webhook_url if monitor and monitor.discord_webhook_url else '' }}"
+          placeholder="https://discord.com/api/webhooks/..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Telegram bot token</label>
+          <input type="text" name="telegram_bot_token" value="{{ monitor.telegram_bot_token if monitor and monitor.telegram_bot_token else '' }}"
+            placeholder="123456:ABC-DEF..."
+            class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1.5">Telegram chat ID</label>
+          <input type="text" name="telegram_chat_id" value="{{ monitor.telegram_chat_id if monitor and monitor.telegram_chat_id else '' }}"
+            placeholder="-1001234567890"
+            class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">PagerDuty integration key <span class="text-gray-600">(Events API v2)</span></label>
+        <input type="text" name="pagerduty_key" value="{{ monitor.pagerduty_key if monitor and monitor.pagerduty_key else '' }}"
+          placeholder="abc123def456..."
+          class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none transition-colors font-mono">
+      </div>
     </div>
 
     <div class="flex items-center gap-3 pt-2">
@@ -153,6 +194,11 @@ document.getElementById('monitorForm').addEventListener('submit', async (e) => {
     alert_email: form.alert_email.value || null,
     alert_webhook_url: form.alert_webhook_url.value || null,
     alert_on_recovery: true,
+    slack_webhook_url: form.slack_webhook_url.value || null,
+    discord_webhook_url: form.discord_webhook_url.value || null,
+    telegram_bot_token: form.telegram_bot_token.value || null,
+    telegram_chat_id: form.telegram_chat_id.value || null,
+    pagerduty_key: form.pagerduty_key.value || null,
   };
 
   const monitorId = '{{ monitor.id if monitor else "" }}';

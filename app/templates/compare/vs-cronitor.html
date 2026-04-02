@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}DeadManCheck vs Cronitor — Cron Job Monitoring Comparison{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Comparison</p>
+  <h1 class="text-4xl font-bold mb-6">DeadManCheck vs Cronitor</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Cronitor is a broad monitoring platform. DeadManCheck does one thing — cron job monitoring — and does it better for less.
+  </p>
+</section>
+
+<!-- Quick verdict -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <div class="text-brand-500 font-semibold text-sm mb-2">✓ Choose DeadManCheck if...</div>
+      <ul class="text-gray-300 text-sm space-y-2">
+        <li>• You need cron job monitoring specifically — not a full observability platform</li>
+        <li>• Cronitor's per-monitor pricing is getting expensive as you scale</li>
+        <li>• You want duration alerts with automatic baseline learning</li>
+        <li>• You want a self-hosted option (Cronitor has none)</li>
+        <li>• You're a solo dev or small team on a budget</li>
+      </ul>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div class="text-gray-400 font-semibold text-sm mb-2">→ Cronitor might suit you if...</div>
+      <ul class="text-gray-400 text-sm space-y-2">
+        <li>• You need website uptime monitoring alongside job monitoring</li>
+        <li>• You want a customer-facing status page</li>
+        <li>• You need synthetic browser monitoring or RUM</li>
+        <li>• Your team needs SAML SSO</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing is the main angle -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">The pricing problem with Cronitor</h2>
+    <p class="text-gray-400 mb-6">
+      Cronitor's Business plan charges <strong class="text-white">$2/monitor/month + $5/user/month</strong>. That sounds reasonable until you actually add up your monitors.
+    </p>
+    <div class="overflow-x-auto mb-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-800">
+            <th class="text-left py-2 pr-6 text-gray-500 font-normal">Setup</th>
+            <th class="text-center py-2 px-4 font-semibold text-brand-500">DeadManCheck</th>
+            <th class="text-center py-2 px-4 font-semibold text-gray-400">Cronitor</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800/60">
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">5 monitors, 1 user</td>
+            <td class="text-center py-3 px-4 text-green-400 font-medium">Free</td>
+            <td class="text-center py-3 px-4 text-white">$15/mo</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">20 monitors, 1 user</td>
+            <td class="text-center py-3 px-4 text-white font-medium">£9/mo (~$11)</td>
+            <td class="text-center py-3 px-4 text-white">$45/mo</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">50 monitors, 2 users</td>
+            <td class="text-center py-3 px-4 text-white font-medium">£9/mo (~$11)</td>
+            <td class="text-center py-3 px-4 text-red-400">$110/mo</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">200 monitors, 3 users</td>
+            <td class="text-center py-3 px-4 text-white font-medium">£29/mo (~$37)</td>
+            <td class="text-center py-3 px-4 text-red-400">$415/mo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-gray-500 text-sm">DeadManCheck charges flat monthly rates per plan, not per monitor. Your cost stays predictable as you grow.</p>
+  </div>
+</section>
+
+<!-- Key differentiator -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Duration monitoring — built in, not bolted on</h2>
+    <p class="text-gray-400 mb-4">
+      Both DeadManCheck and Cronitor detect missing jobs. But DeadManCheck also alerts you when a job runs but takes longer than expected — automatically, based on its rolling average runtime.
+    </p>
+    <p class="text-gray-400 mb-6">
+      Cronitor tracks execution logs per job, but doesn't automatically alert on duration anomalies without manual threshold configuration. DeadManCheck learns your job's normal runtime and flags deviations with no setup required.
+    </p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Cronitor</div>
+        <div class="text-gray-400">Manual duration thresholds — you decide the limit, configure it per job, update it when job characteristics change.</div>
+      </div>
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-brand-500 text-xs mb-2 uppercase tracking-wide">DeadManCheck</div>
+        <div class="text-gray-300">Automatic baseline — learns your job's typical runtime, alerts when it drifts. Zero configuration needed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Feature comparison</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-800">
+          <th class="text-left py-3 pr-6 text-gray-400 font-normal w-1/2">Feature</th>
+          <th class="text-center py-3 px-4 font-semibold text-brand-500">DeadManCheck</th>
+          <th class="text-center py-3 px-4 font-semibold text-gray-400">Cronitor</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800/60">
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Cron job monitoring</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Long-running job detection</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ automatic</td>
+          <td class="text-center py-3 px-4 text-yellow-400">Manual config</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Duration baseline learning</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Flat monthly pricing</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗ per-monitor</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Self-hosting</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ open source</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Email alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Webhook alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Slack alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ (Developer+)</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">PagerDuty integration</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ (Team+)</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Website uptime monitoring</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Public status pages</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-yellow-400">+$25/mo each</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">SAML SSO</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ (Business)</td>
+          <td class="text-center py-3 px-4 text-yellow-400">+$5/user/mo</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Kubernetes / Celery integrations</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Who it's for -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Which tool fits your team?</h2>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <h3 class="font-semibold text-brand-500 mb-3">DeadManCheck is built for</h3>
+      <ul class="text-gray-300 text-sm space-y-2">
+        <li>• Solo developers and small teams</li>
+        <li>• Teams with 20–200 scheduled jobs</li>
+        <li>• Anyone migrating off Cronitor due to cost</li>
+        <li>• Teams who want simple, purpose-built tooling</li>
+        <li>• Privacy-conscious teams who want self-hosting</li>
+      </ul>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <h3 class="font-semibold text-gray-400 mb-3">Cronitor makes sense for</h3>
+      <ul class="text-gray-400 text-sm space-y-2">
+        <li>• Teams that need one platform for cron + uptime + status pages</li>
+        <li>• Larger engineering orgs needing SAML SSO and on-call management</li>
+        <li>• Teams already using Kubernetes with native Helm chart support</li>
+        <li>• Organisations that need a public customer status page</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Switch from Cronitor — takes 10 minutes</h2>
+  <p class="text-gray-400 mb-8">Same ping URL model. Replace your Cronitor ping URLs with DeadManCheck ones. Done.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start free — 5 monitors, no card →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}

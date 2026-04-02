@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if page else 'New' }} Status Page — DeadManCheck{% endblock %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <a href="/status-pages" class="text-gray-500 hover:text-white text-sm transition-colors">← Back</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-10">
+  <h1 class="text-2xl font-bold mb-8">{{ 'Edit status page' if page else 'New status page' }}</h1>
+
+  <form id="pageForm" class="space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Page name</label>
+      <input type="text" name="name" value="{{ page.name if page else '' }}" required
+        placeholder="e.g. My API Status"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Slug <span class="text-gray-500 font-normal">(used in public URL)</span></label>
+      <div class="flex items-center gap-2">
+        <span class="text-gray-500 text-sm">deadmancheck.io/status/</span>
+        <input type="text" name="slug" value="{{ page.slug if page else '' }}" required
+          placeholder="my-api"
+          class="flex-1 bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors font-mono">
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">Description <span class="text-gray-500 font-normal">(optional)</span></label>
+      <input type="text" name="description" value="{{ page.description if page and page.description else '' }}"
+        placeholder="Current status of our services"
+        class="w-full bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-3">Monitors to include</label>
+      {% if monitors %}
+      <div class="space-y-2">
+        {% for m in monitors %}
+        <label class="flex items-center gap-3 bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg px-4 py-3 cursor-pointer transition-colors">
+          <input type="checkbox" name="monitor_ids" value="{{ m.id }}"
+            {% if m.id|string in selected_ids %}checked{% endif %}
+            class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-brand-500 focus:ring-brand-500">
+          <div class="flex items-center gap-2 flex-1">
+            {% if m.status == 'up' %}
+            <span class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
+            {% elif m.status == 'late' %}
+            <span class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+            {% else %}
+            <span class="w-2 h-2 bg-gray-500 rounded-full flex-shrink-0"></span>
+            {% endif %}
+            <span class="text-sm text-white">{{ m.name }}</span>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-gray-500 text-sm">No monitors yet. <a href="/monitors/new" class="text-brand-500 hover:underline">Create one first →</a></p>
+      {% endif %}
+    </div>
+
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+        {{ 'Save changes' if page else 'Create status page' }}
+      </button>
+      <a href="/status-pages" class="text-gray-500 hover:text-white text-sm transition-colors">Cancel</a>
+      {% if page %}
+      <button type="button" onclick="deletePage()" class="ml-auto text-red-400 hover:text-red-300 text-sm transition-colors">Delete</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('pageForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const checkedBoxes = form.querySelectorAll('input[name="monitor_ids"]:checked');
+  const monitorIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+  const data = {
+    name: form.name.value,
+    slug: form.slug.value,
+    description: form.description.value || null,
+    monitor_ids: monitorIds,
+  };
+
+  const pageId = '{{ page.id if page else "" }}';
+  const url = pageId ? `/api/status-pages/${pageId}` : '/api/status-pages';
+  const method = pageId ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method,
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+
+  if (res.ok) {
+    window.location.href = '/status-pages';
+  } else {
+    const err = await res.json();
+    alert(err.detail || 'Something went wrong');
+  }
+});
+
+async function deletePage() {
+  if (!confirm('Delete this status page?')) return;
+  const pageId = '{{ page.id if page else "" }}';
+  const res = await fetch(`/api/status-pages/${pageId}`, {method: 'DELETE'});
+  if (res.ok) window.location.href = '/status-pages';
+}
+</script>
+{% endblock %}

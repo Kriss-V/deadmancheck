@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.name }} — Status{% endblock %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-4xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <a href="/register" class="text-gray-400 hover:text-white text-sm transition-colors">Create your own →</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-12">
+
+  <!-- Overall status -->
+  <div class="text-center mb-12">
+    <h1 class="text-3xl font-bold mb-2">{{ page.name }}</h1>
+    {% if page.description %}
+    <p class="text-gray-400 mb-6">{{ page.description }}</p>
+    {% endif %}
+
+    {% if overall == 'operational' %}
+    <div class="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-3 rounded-full text-lg font-medium">
+      <span class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
+      All Systems Operational
+    </div>
+    {% elif overall == 'issues' %}
+    <div class="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-6 py-3 rounded-full text-lg font-medium">
+      <span class="w-2.5 h-2.5 bg-red-400 rounded-full"></span>
+      Some Systems Down
+    </div>
+    {% else %}
+    <div class="inline-flex items-center gap-2 bg-gray-700/50 border border-gray-600 text-gray-400 px-6 py-3 rounded-full text-lg font-medium">
+      <span class="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
+      Status Unknown
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Monitor list -->
+  {% if monitors_data %}
+  <div class="space-y-3">
+    {% for item in monitors_data %}
+    {% set m = item.monitor %}
+    {% set pings = item.pings %}
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          {% if m.is_paused %}
+          <span class="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0"></span>
+          {% elif m.status == 'up' %}
+          <span class="w-3 h-3 bg-green-500 rounded-full flex-shrink-0 animate-pulse"></span>
+          {% elif m.status == 'late' %}
+          <span class="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></span>
+          {% else %}
+          <span class="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0"></span>
+          {% endif %}
+          <span class="font-medium">{{ m.name }}</span>
+        </div>
+        <span class="text-sm font-medium
+          {% if m.is_paused %}text-gray-500
+          {% elif m.status == 'up' %}text-green-400
+          {% elif m.status == 'late' %}text-red-400
+          {% else %}text-gray-500{% endif %}">
+          {% if m.is_paused %}Paused
+          {% elif m.status == 'up' %}Operational
+          {% elif m.status == 'late' %}Down
+          {% else %}No data{% endif %}
+        </span>
+      </div>
+
+      <!-- Ping history dots -->
+      {% if pings %}
+      <div class="flex gap-1 flex-wrap">
+        {% for ping in pings|reverse %}
+        <div class="w-3 h-6 rounded-sm {% if ping.kind == 'fail' %}bg-red-500{% elif ping.kind == 'start' %}bg-yellow-500/50{% else %}bg-green-500{% endif %}"
+          title="{{ ping.received_at.strftime('%Y-%m-%d %H:%M') }} — {{ ping.kind }}"></div>
+        {% endfor %}
+      </div>
+      <p class="text-xs text-gray-600 mt-2">Last {{ pings|length }} pings</p>
+      {% else %}
+      <p class="text-xs text-gray-600">No ping history yet</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-12 text-gray-500">
+    <p>No monitors on this status page yet.</p>
+  </div>
+  {% endif %}
+
+  <p class="text-center text-gray-600 text-xs mt-10">
+    Powered by <a href="/" class="text-brand-500 hover:underline">DeadManCheck</a>
+  </p>
+</div>
+{% endblock %}

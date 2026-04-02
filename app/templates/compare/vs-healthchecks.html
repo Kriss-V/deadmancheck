@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}DeadManCheck vs Healthchecks.io — Cron Job Monitoring Comparison{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Comparison</p>
+  <h1 class="text-4xl font-bold mb-6">DeadManCheck vs Healthchecks.io</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Both tools monitor cron jobs. But only one alerts you when a job runs — and keeps running longer than it should.
+  </p>
+</section>
+
+<!-- Quick verdict -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <div class="text-brand-500 font-semibold text-sm mb-2">✓ Choose DeadManCheck if...</div>
+      <ul class="text-gray-300 text-sm space-y-2">
+        <li>• You need to catch jobs that run <strong>too long</strong>, not just jobs that go missing</li>
+        <li>• You want duration alerts with automatic baseline learning</li>
+        <li>• You prefer a simpler, purpose-built interface</li>
+        <li>• You want UK-hosted infrastructure</li>
+      </ul>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div class="text-gray-400 font-semibold text-sm mb-2">→ Healthchecks.io might suit you if...</div>
+      <ul class="text-gray-400 text-sm space-y-2">
+        <li>• You need 17+ notification channels (Signal, Matrix, XMPP etc.)</li>
+        <li>• You want systemd OnCalendar schedule syntax</li>
+        <li>• You need EU-hosted infrastructure (Germany)</li>
+        <li>• You want to self-host on your own server</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- The key differentiator -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">The difference that matters</h2>
+    <p class="text-gray-400 mb-6">
+      Healthchecks.io monitors one thing: did your job ping in time? If it didn't, you get an alert. That's the dead man's switch model, and it works well.
+    </p>
+    <p class="text-gray-400 mb-6">
+      But there's a second failure mode nobody talks about: <strong class="text-white">the job starts, but never finishes</strong>. A database backup that hung at 98%. A sync job stuck on a locked record. A scraper crawling 10× slower than expected. These all ping on schedule — so Healthchecks.io stays green while your infrastructure quietly falls behind.
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck tracks both. When a job takes longer than its rolling average (or your hard limit), you get alerted — even if it technically started on time.
+    </p>
+    <div class="mt-6 grid md:grid-cols-2 gap-4">
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Healthchecks.io</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job pinged on time</div>
+        <div class="text-gray-500 text-xs mt-2">Job hung for 6 hours? Still green.</div>
+      </div>
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-brand-500 text-xs mb-2 uppercase tracking-wide">DeadManCheck</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job pinged on time</div>
+        <div class="flex items-center gap-2 text-red-400">⚠ Job exceeded max duration → alert sent</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature comparison table -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Feature comparison</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-800">
+          <th class="text-left py-3 pr-6 text-gray-400 font-normal w-1/2">Feature</th>
+          <th class="text-center py-3 px-4 font-semibold text-brand-500">DeadManCheck</th>
+          <th class="text-center py-3 px-4 font-semibold text-gray-400">Healthchecks.io</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800/60">
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Missing job detection</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Long-running job detection</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Duration baseline learning</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ automatic</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Cron expression schedules</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Period-based schedules</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Email alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Webhook alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Slack alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ (Developer+)</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">PagerDuty integration</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ (Team+)</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Recovery alerts</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Grace period</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Self-hosting</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ open source</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ open source</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">17+ notification channels</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">systemd OnCalendar syntax</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Prometheus endpoint</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Pricing comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Pricing</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-800">
+          <th class="text-left py-3 pr-6 text-gray-400 font-normal"></th>
+          <th class="text-center py-3 px-4 font-semibold text-brand-500">DeadManCheck</th>
+          <th class="text-center py-3 px-4 font-semibold text-gray-400">Healthchecks.io</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800/60">
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Free tier</td>
+          <td class="text-center py-3 px-4 text-white">5 monitors</td>
+          <td class="text-center py-3 px-4 text-white">20 monitors</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Entry paid plan</td>
+          <td class="text-center py-3 px-4 text-white">£9/mo — 50 monitors</td>
+          <td class="text-center py-3 px-4 text-white">$20/mo — 100 monitors</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Mid tier</td>
+          <td class="text-center py-3 px-4 text-white">£29/mo — 200 monitors</td>
+          <td class="text-center py-3 px-4 text-gray-500">—</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Includes duration monitoring</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ all plans</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-gray-500 text-xs text-center mt-4">Prices correct as of 2025. Check each provider's pricing page for current rates.</p>
+</section>
+
+<!-- Setup comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Setup — 2 lines either way</h2>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 text-xs text-brand-500 font-medium">DeadManCheck</div>
+      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://deadmancheck.io/ping/YOUR-ID/start
+./your_job.sh
+curl -s https://deadmancheck.io/ping/YOUR-ID</code></pre>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 text-xs text-gray-400 font-medium">Healthchecks.io</div>
+      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://hc-ping.com/YOUR-UUID/start
+./your_job.sh
+curl -s https://hc-ping.com/YOUR-UUID</code></pre>
+    </div>
+  </div>
+  <p class="text-center text-gray-500 text-sm mt-4">Same ping model. DeadManCheck adds automated duration alerting on top.</p>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Try DeadManCheck free</h2>
+  <p class="text-gray-400 mb-8">5 monitors, no credit card. Takes 2 minutes to set up.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start monitoring free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Status Pages — DeadManCheck{% endblock %}
+
+{% block nav %}
+<nav class="border-b border-gray-800 px-6 py-4">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+    <div class="flex items-center gap-4 text-sm">
+      <a href="/dashboard" class="text-gray-400 hover:text-white transition-colors">Monitors</a>
+      <span class="text-white font-medium">Status Pages</span>
+      <a href="/logout" class="text-gray-500 hover:text-white transition-colors">Log out</a>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-10">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold">Status Pages</h1>
+    <a href="/status-pages/new" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors text-sm">
+      + New status page
+    </a>
+  </div>
+
+  {% if pages %}
+  <div class="space-y-3">
+    {% for page in pages %}
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium">{{ page.name }}</div>
+          <div class="text-xs text-gray-500 mt-1 font-mono">deadmancheck.io/status/{{ page.slug }}</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/status/{{ page.slug }}" target="_blank"
+            class="text-xs text-brand-500 hover:text-brand-400 border border-brand-500/30 hover:border-brand-500/60 px-3 py-1.5 rounded-lg transition-colors">
+            View public →
+          </a>
+          <a href="/status-pages/{{ page.id }}/edit"
+            class="text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors">
+            Edit
+          </a>
+          <button onclick="copyUrl('https://deadmancheck.io/status/{{ page.slug }}')"
+            class="text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors">
+            Copy URL
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-24 text-gray-500">
+    <div class="text-5xl mb-4">📊</div>
+    <p class="text-lg font-medium text-gray-300 mb-2">No status pages yet</p>
+    <p class="mb-6">Create a public status page to share your system health with your users.</p>
+    <a href="/status-pages/new" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+      Create your first status page
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function copyUrl(url) {
+  navigator.clipboard.writeText(url);
+  alert('URL copied!');
+}
+</script>
+{% endblock %}

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.routers import auth, billing, monitors, ping
+from app.routers import auth, billing, monitors, ping, status_pages
 from app.services.redis_client import close_redis, init_redis
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -28,6 +28,7 @@ app.include_router(ping.router)
 app.include_router(auth.router)
 app.include_router(monitors.router)
 app.include_router(billing.router)
+app.include_router(status_pages.router)
 
 
 @app.get("/health")
