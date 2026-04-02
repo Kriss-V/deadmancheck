@@ -15,18 +15,19 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        'status_pages',
-        sa.Column('id', UUID(as_uuid=True), primary_key=True),
-        sa.Column('user_id', UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=False, index=True),
-        sa.Column('name', sa.String(255), nullable=False),
-        sa.Column('slug', sa.String(100), nullable=False, unique=True),
-        sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('monitor_ids', sa.Text(), nullable=False, server_default='[]'),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-    )
-    op.create_index('ix_status_pages_slug', 'status_pages', ['slug'])
-    op.create_index('ix_status_pages_user_id', 'status_pages', ['user_id'])
+    op.execute("""
+        CREATE TABLE IF NOT EXISTS status_pages (
+            id UUID PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES users(id),
+            name VARCHAR(255) NOT NULL,
+            slug VARCHAR(100) NOT NULL UNIQUE,
+            description TEXT,
+            monitor_ids TEXT NOT NULL DEFAULT '[]',
+            created_at TIMESTAMPTZ DEFAULT now()
+        )
+    """)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_status_pages_user_id ON status_pages(user_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS ix_status_pages_slug ON status_pages(slug)")
 
 
 def downgrade() -> None:
