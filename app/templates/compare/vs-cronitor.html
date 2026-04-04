@@ -242,6 +242,49 @@
   </div>
 </section>
 
+<!-- Setup comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-6 text-center">Migration takes 10 minutes</h2>
+  <p class="text-gray-400 text-center mb-8">DeadManCheck uses the same ping URL model as Cronitor. Swap the URL, keep your scripts.</p>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 text-xs text-gray-400 font-medium">Cronitor</div>
+      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://cronitor.io/p/YOUR-KEY/job-id/run
+./your_job.sh
+curl -s https://cronitor.io/p/YOUR-KEY/job-id/complete</code></pre>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-800 text-xs text-brand-500 font-medium">DeadManCheck</div>
+      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://deadmancheck.io/ping/YOUR-TOKEN/start
+./your_job.sh
+curl -s https://deadmancheck.io/ping/YOUR-TOKEN/end</code></pre>
+    </div>
+  </div>
+  <p class="text-center text-gray-500 text-sm mt-4">Plus: add output assertions on the end ping to catch false-success runs.</p>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Learn more</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">The feature Cronitor doesn't have</div>
+    </a>
+    <a href="/cron-job-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Overview</div>
+      <div class="text-white font-semibold text-sm">Cron job monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">How DeadManCheck catches all three failure modes</div>
+    </a>
+    <a href="/compare/vs-healthchecks" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Compare</div>
+      <div class="text-white font-semibold text-sm">DeadManCheck vs Healthchecks.io</div>
+      <div class="text-gray-400 text-xs mt-1">The other major alternative</div>
+    </a>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="max-w-2xl mx-auto px-6 pb-24 text-center">
   <h2 class="text-3xl font-bold mb-4">Switch from Cronitor — takes 10 minutes</h2>
