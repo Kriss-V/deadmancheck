@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Monitor Long-Running Cron Jobs — DeadManCheck{% endblock %}
+{% block meta_description %}Alert when cron jobs run longer than expected. DeadManCheck learns your job's normal runtime and notifies you automatically — no manual thresholds.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Duration Monitoring</p>
+  <h1 class="text-4xl font-bold mb-6">Your cron job didn't fail.<br>It just took 45 minutes instead of 2.</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Most monitoring tools stay green while your infrastructure quietly degrades.
+    DeadManCheck learns your job's normal runtime and alerts when it drifts — automatically, no thresholds to configure.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start free →</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart</a>
+  </div>
+</section>
+
+<!-- Visceral hit -->
+<section class="max-w-4xl mx-auto px-6 pb-10">
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-sm">
+      <div class="text-gray-500 text-xs uppercase tracking-wide mb-3">Standard monitoring</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ Job ran at 02:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-500 text-xs mt-3">Runtime: 4h 12m &nbsp;·&nbsp; <span class="text-red-400">normally 90 seconds</span></div>
+      <div class="text-gray-500 text-xs mt-1">Alert sent: no</div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-5 text-sm">
+      <div class="text-brand-500 text-xs uppercase tracking-wide mb-3">DeadManCheck</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ Job ran at 02:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-300 text-xs mt-3">Runtime: 4h 12m &nbsp;·&nbsp; baseline 90s</div>
+      <div class="text-red-400 text-xs mt-1">⚠ Duration anomaly — alert sent</div>
+    </div>
+  </div>
+</section>
+
+<!-- The scenario -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">The failure mode nobody talks about</h2>
+    <p class="text-gray-400 mb-4">
+      Your nightly database backup normally takes 90 seconds. Last night it took 4 hours. It eventually finished — so exit code 0, ping sent, all monitoring dashboards green.
+    </p>
+    <p class="text-gray-400 mb-4">
+      But something was clearly wrong. A slow disk. A table lock. A network bottleneck. The job degraded, silently, while every monitoring tool you have told you everything was fine.
+    </p>
+    <p class="text-gray-400">
+      By the time you noticed, three more backups had run equally slowly, your retention window had drifted, and you had no idea when the problem started.
+    </p>
+    <div class="mt-6 grid md:grid-cols-2 gap-4">
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Standard cron monitoring</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job ran on schedule</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Exit code 0</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Ping received</div>
+        <div class="text-gray-500 text-xs mt-2">Took 4 hours instead of 90 seconds? Silent.</div>
+      </div>
+      <div class="bg-gray-800 rounded-lg p-4 text-sm">
+        <div class="text-brand-500 text-xs mb-2 uppercase tracking-wide">DeadManCheck</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job ran on schedule</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Exit code 0</div>
+        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Ping received</div>
+        <div class="flex items-center gap-2 text-red-400">⚠ Duration 4h — baseline is 90s → alert sent</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">How duration monitoring works</h2>
+  <div class="grid md:grid-cols-3 gap-6 mb-10">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+      <div class="text-brand-500 text-3xl font-bold mb-2">1</div>
+      <h3 class="font-semibold mb-2">Wrap your job</h3>
+      <p class="text-gray-400 text-sm">Send a <code class="text-brand-500">/start</code> ping before your job runs and an <code class="text-brand-500">/end</code> ping when it completes.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+      <div class="text-brand-500 text-3xl font-bold mb-2">2</div>
+      <h3 class="font-semibold mb-2">Baseline is learned</h3>
+      <p class="text-gray-400 text-sm">DeadManCheck tracks your job's runtime over time and builds a rolling average — no manual config required.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+      <div class="text-brand-500 text-3xl font-bold mb-2">3</div>
+      <h3 class="font-semibold mb-2">Anomalies are flagged</h3>
+      <p class="text-gray-400 text-sm">When a run significantly exceeds the baseline, or your hard max duration, you get alerted immediately.</p>
+    </div>
+  </div>
+
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h3 class="font-semibold text-white mb-4">Setup — two extra curl calls</h3>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-4 overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Bash</div>
+      <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
+      <div class="text-gray-500 mt-2 mb-1"># your job runs here</div>
+      <div class="text-gray-100">your-backup-script.sh</div>
+      <div class="text-gray-100 mt-1">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end</div>
+    </div>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Python</div>
+      <div class="text-gray-100">import requests</div>
+      <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
+      <div class="text-gray-100">run_your_job()</div>
+      <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>)</div>
+    </div>
+  </div>
+</section>
+
+<!-- Use cases -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Jobs worth monitoring for duration</h2>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">Database backups</h3>
+      <p class="text-gray-400 text-sm">A backup that takes 10× longer than normal is either failing or your database has grown unexpectedly. Either way — you should know.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">ETL / data pipelines</h3>
+      <p class="text-gray-400 text-sm">A pipeline that suddenly takes twice as long is a sign of upstream data volume changes, slow queries, or memory pressure.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">Report generation</h3>
+      <p class="text-gray-400 text-sm">A nightly report that normally takes 3 minutes but is now running for an hour will miss its delivery window. Duration alerts get there first.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">Sync jobs</h3>
+      <p class="text-gray-400 text-sm">A sync that's slowly falling behind schedule shows up as a gradual runtime increase — invisible to standard ping monitoring.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">Queue consumers</h3>
+      <p class="text-gray-400 text-sm">Background workers processing more data than usual or hitting slow external APIs will run long — alerting you before the queue backs up.</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <h3 class="font-semibold text-white mb-1">GitHub Actions workflows</h3>
+      <p class="text-gray-400 text-sm">A scheduled CI job that suddenly takes 3× longer may indicate a flaky test, infrastructure issue, or unexpected dependency slowdown.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-6">Why existing tools miss this</h2>
+    <div class="space-y-4">
+      <div class="flex gap-4 items-start">
+        <div class="text-gray-500 font-semibold text-sm w-36 shrink-0 mt-0.5">Healthchecks.io</div>
+        <div class="text-gray-400 text-sm">Supports a <code>/start</code> endpoint to measure max runtime, but it only alerts if the job <em>doesn't</em> send an <code>/end</code> ping within the window. There's no automatic baseline learning — it won't catch a job that finishes late but within your manual limit.</div>
+      </div>
+      <div class="border-t border-gray-800"></div>
+      <div class="flex gap-4 items-start">
+        <div class="text-gray-500 font-semibold text-sm w-36 shrink-0 mt-0.5">Cronitor</div>
+        <div class="text-gray-400 text-sm">Tracks execution time per job, but duration alerts require manual threshold configuration — you set the limit, you maintain it. As your jobs evolve, your thresholds go stale.</div>
+      </div>
+      <div class="border-t border-gray-800"></div>
+      <div class="flex gap-4 items-start">
+        <div class="text-brand-500 font-semibold text-sm w-36 shrink-0 mt-0.5">DeadManCheck</div>
+        <div class="text-gray-300 text-sm">Learns your job's normal runtime automatically. When a run exceeds the rolling average by a configurable margin, you get alerted — no setup, no maintenance.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Related guides</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">Alert when jobs run but produce bad output</div>
+    </a>
+    <a href="/cron-job-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Overview</div>
+      <div class="text-white font-semibold text-sm">Cron job monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">All three failure modes explained</div>
+    </a>
+    <a href="/compare/vs-healthchecks" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Compare</div>
+      <div class="text-white font-semibold text-sm">vs Healthchecks.io</div>
+      <div class="text-gray-400 text-xs mt-1">See how duration monitoring compares</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Start catching duration anomalies</h2>
+  <p class="text-gray-400 mb-8">Free plan. 5 monitors. No card required. Takes 5 minutes to set up.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start monitoring free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}

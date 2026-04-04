@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Cron Job Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor cron jobs that go missing, run too long, or succeed but do nothing. DeadManCheck alerts on all three failure modes — not just missed pings.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Cron Job Monitoring</p>
+  <h1 class="text-4xl font-bold mb-6">Your cron job ran.<br>That's not the same as working.</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Most monitoring tools ask: did it run? DeadManCheck asks: did it run, finish in time, and actually produce something?
+    Three failure modes. Most tools catch one.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start free — no card required</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart →</a>
+  </div>
+</section>
+
+<!-- Three failure modes -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">The three failure modes</h2>
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <div class="text-red-400 text-2xl mb-3">⏰</div>
+      <h3 class="font-semibold text-white mb-2">Job stops running</h3>
+      <p class="text-gray-400 text-sm">The classic dead man's switch. Your nightly backup didn't ping. Your ETL didn't run. DeadManCheck alerts when expected pings go missing.</p>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <div class="text-yellow-400 text-2xl mb-3">⌛</div>
+      <h3 class="font-semibold text-white mb-2">Job runs too long</h3>
+      <p class="text-gray-400 text-sm">Your 2-minute backup job is now taking 45 minutes. It will technically "succeed" — but something is wrong. DeadManCheck tracks duration and alerts on anomalies automatically.</p>
+      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Unique to DeadManCheck</span>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <div class="text-orange-400 text-2xl mb-3">📭</div>
+      <h3 class="font-semibold text-white mb-2">Job runs but does nothing</h3>
+      <p class="text-gray-400 text-sm">Exit code 0. On time. But it exported 0 rows, synced 0 records, or returned an empty response. Output assertions catch this before your data pipeline silently breaks.</p>
+      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Unique to DeadManCheck</span>
+    </div>
+  </div>
+</section>
+
+<!-- Setup example -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-2">Two lines to set up</h2>
+    <p class="text-gray-400 mb-6">Add a ping to the end of your job. DeadManCheck handles the rest — no agents, no SDKs, no config files.</p>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-4 overflow-x-auto">
+      <div class="text-gray-500 mb-2"># Bash — missing ping alert</div>
+      <div class="text-gray-100">your-job.sh &amp;&amp; curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span></div>
+    </div>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-6 overflow-x-auto">
+      <div class="text-gray-500 mb-2"># Duration monitoring — wrap with /start and /end</div>
+      <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
+      <div class="text-gray-100">your-job.sh</div>
+      <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end</div>
+    </div>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
+      <div class="text-gray-500 mb-2"># Output assertions — send job result as JSON (Developer+ plan)</div>
+      <div class="text-gray-100">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end \</div>
+      <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
+      <div class="text-gray-100 pl-4">-d '{"rows_exported": 1452, "status": "ok"}'</div>
+    </div>
+  </div>
+</section>
+
+<!-- What you get -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Everything included</h2>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="space-y-4">
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Missing ping alerts</div>
+          <div class="text-gray-400 text-sm">Alert via email, Slack, webhook, PagerDuty, or SMS when your job doesn't check in.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Duration monitoring</div>
+          <div class="text-gray-400 text-sm">Learns your job's normal runtime. Alerts when it drifts — no manual thresholds needed.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Output assertions</div>
+          <div class="text-gray-400 text-sm">Validate JSON output on every ping. Alert when rows_exported drops to zero or any field fails your rule.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Uptime monitoring</div>
+          <div class="text-gray-400 text-sm">HTTP uptime checks included alongside your cron monitors. One dashboard for everything.</div>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Public status pages</div>
+          <div class="text-gray-400 text-sm">Free public status page for your monitors. Share a live status URL with your users or team.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Prometheus metrics</div>
+          <div class="text-gray-400 text-sm">Scrape job health, last ping time, and duration stats directly into your existing metrics stack.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Open source &amp; self-hosted</div>
+          <div class="text-gray-400 text-sm">Run it yourself for free. Full source on GitHub. No vendor lock-in.</div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+        <div>
+          <div class="text-white font-medium text-sm">Flat monthly pricing</div>
+          <div class="text-gray-400 text-sm">Not per-monitor. Add 200 monitors on the Developer plan — still £9/month.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">How it compares</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-800">
+          <th class="text-left py-3 pr-6 text-gray-400 font-normal w-2/5">Feature</th>
+          <th class="text-center py-3 px-4 font-semibold text-brand-500">DeadManCheck</th>
+          <th class="text-center py-3 px-4 font-semibold text-gray-400">Healthchecks.io</th>
+          <th class="text-center py-3 px-4 font-semibold text-gray-400">Cronitor</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800/60">
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Missing ping detection</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr class="bg-brand-500/5">
+          <td class="py-3 pr-6 text-gray-300">Long-running job detection <span class="text-xs text-brand-500 ml-1">automatic baseline</span></td>
+          <td class="text-center py-3 px-4 text-green-400">✓ automatic</td>
+          <td class="text-center py-3 px-4 text-yellow-400">Manual grace period</td>
+          <td class="text-center py-3 px-4 text-yellow-400">Manual only</td>
+        </tr>
+        <tr class="bg-brand-500/5">
+          <td class="py-3 pr-6 text-gray-300">Output assertions</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Uptime monitoring</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Public status pages</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ free</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-yellow-400">+$25/mo</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Open source / self-hosted</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Flat monthly pricing</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗ per-monitor</td>
+        </tr>
+        <tr>
+          <td class="py-3 pr-6 text-gray-300">Prometheus metrics</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Works with -->
+<section class="max-w-4xl mx-auto px-6 pb-16 text-center">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Works with any stack</h2>
+  <div class="flex flex-wrap justify-center gap-3 text-sm text-gray-400">
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Bash / Shell</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Python</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Node.js</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">GitHub Actions</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Docker</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Kubernetes CronJobs</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Laravel Scheduler</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Ruby on Rails</span>
+    <span class="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2">Any language with curl</span>
+  </div>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Dig deeper</h2>
+  <div class="grid md:grid-cols-2 gap-4">
+    <a href="/monitor-long-running-cron-jobs" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Monitor long-running cron jobs</div>
+      <div class="text-gray-400 text-xs mt-1">How automatic duration baseline learning works</div>
+    </a>
+    <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">Catch jobs that run but produce nothing useful</div>
+    </a>
+    <a href="/compare/vs-healthchecks" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Compare</div>
+      <div class="text-white font-semibold text-sm">DeadManCheck vs Healthchecks.io</div>
+      <div class="text-gray-400 text-xs mt-1">Side-by-side feature and pricing comparison</div>
+    </a>
+    <a href="/compare/vs-cronitor" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Compare</div>
+      <div class="text-white font-semibold text-sm">DeadManCheck vs Cronitor</div>
+      <div class="text-gray-400 text-xs mt-1">Focused tool vs full monitoring platform</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Set up in under 5 minutes</h2>
+  <p class="text-gray-400 mb-8">Free plan includes 5 monitors. No credit card. No agent to install.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start monitoring free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}
