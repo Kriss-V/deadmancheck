@@ -8,8 +8,8 @@
   <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Cron Job Monitoring</p>
   <h1 class="text-4xl font-bold mb-6">Your cron job ran.<br>That's not the same as working.</h1>
   <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-    Most monitoring tools ask: did it run? DeadManCheck asks: did it run, finish in time, and actually produce something?
-    Three failure modes. Most tools catch one.
+    Most tools only check if your job ran. They don't check if it worked.
+    DeadManCheck catches all three failure modes — missing jobs, slow jobs, and jobs that run but produce nothing.
   </p>
   <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
     <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start free — no card required</a>
@@ -35,7 +35,7 @@
     <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
       <div class="text-orange-400 text-2xl mb-3">📭</div>
       <h3 class="font-semibold text-white mb-2">Job runs but does nothing</h3>
-      <p class="text-gray-400 text-sm">Exit code 0. On time. But it exported 0 rows, synced 0 records, or returned an empty response. Output assertions catch this before your data pipeline silently breaks.</p>
+      <p class="text-gray-400 text-sm">Exit code 0. On time. But it exported 0 rows, synced 0 records, or returned nothing. DeadManCheck checks whether your job actually produced real results — not just that it ran.</p>
       <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Unique to DeadManCheck</span>
     </div>
   </div>
@@ -87,8 +87,8 @@
       <div class="flex gap-3">
         <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
         <div>
-          <div class="text-white font-medium text-sm">Output assertions</div>
-          <div class="text-gray-400 text-sm">Validate JSON output on every ping. Alert when rows_exported drops to zero or any field fails your rule.</div>
+          <div class="text-white font-medium text-sm">Did it actually work?</div>
+          <div class="text-gray-400 text-sm">Validate what your job produced on every ping. Alert when rows drop to zero, output is empty, or results don't match your rules.</div>
         </div>
       </div>
       <div class="flex gap-3">
@@ -196,6 +196,19 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</section>
+
+<!-- Keyword variations -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Cron job not running? Job succeeded but did nothing? Duration spiking?</h2>
+    <p class="text-gray-400 mb-4">
+      Whether you're dealing with a <em>scheduled task that stopped running</em>, a <em>cron job that's taking too long</em>, or a <em>job that ran but returned no data</em> — DeadManCheck covers all three.
+    </p>
+    <p class="text-gray-400">
+      Most cron monitoring tools were built to solve one problem: the missing ping. DeadManCheck was built to solve all three ways scheduled jobs fail — including the two that look like success.
+    </p>
   </div>
 </section>
 

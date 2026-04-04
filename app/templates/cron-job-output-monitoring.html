@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Cron Job Output Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Alert when cron jobs run but produce bad output — zero rows exported, empty responses, or failed assertions. Exit code 0 isn't enough.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Output Monitoring</p>
+  <h1 class="text-4xl font-bold mb-6">Your cron job didn't fail.<br>It lied.</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    It ran. It exited 0. It pinged on time. And it exported nothing, backed up nothing, synced nothing.
+    Most tools call that a success. DeadManCheck checks whether your job actually produced valid results.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start free →</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart</a>
+  </div>
+</section>
+
+<!-- Visceral hit -->
+<section class="max-w-4xl mx-auto px-6 pb-10">
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-sm">
+      <div class="text-gray-500 text-xs uppercase tracking-wide mb-3">Standard monitoring</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ ETL job ran at 03:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-500 text-xs mt-3">Rows exported: <span class="text-red-400">0</span> &nbsp;·&nbsp; upstream API returned empty</div>
+      <div class="text-gray-500 text-xs mt-1">Alert sent: no</div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-5 text-sm">
+      <div class="text-brand-500 text-xs uppercase tracking-wide mb-3">DeadManCheck</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ ETL job ran at 03:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-300 text-xs mt-3">rows_exported: 0 &nbsp;·&nbsp; assertion: <span class="text-brand-500">rows &gt; 0</span></div>
+      <div class="text-red-400 text-xs mt-1">⚠ Assertion failed — alert sent</div>
+    </div>
+  </div>
+</section>
+
+<!-- The problem -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">The false success problem</h2>
+    <p class="text-gray-400 mb-4">
+      Standard monitoring asks: did the job run? If yes, everything is fine. But that's the wrong question.
+    </p>
+    <p class="text-gray-400 mb-6">
+      The right question is: did the job do what it was supposed to do?
+    </p>
+    <div class="space-y-3">
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">Backup job ran but copied 0 files</div>
+          <div class="text-gray-400 mt-1">Source directory was empty due to a misconfigured path. Exit 0. Ping sent. No backup taken.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">ETL job completed but exported 0 rows</div>
+          <div class="text-gray-400 mt-1">Upstream API returned an empty response due to an auth token expiry. The job handled it gracefully — and silently wrote nothing.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">Sync job returned 200 but output was empty JSON</div>
+          <div class="text-gray-400 mt-1">API returned <code class="text-gray-300">{}</code> instead of a populated payload. The script didn't error — it just synced nothing.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">Nightly report ran but produced invalid output</div>
+          <div class="text-gray-400 mt-1">A downstream schema change caused the report to generate malformed data — no errors thrown, no alert sent.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How output assertions work -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">How DeadManCheck checks if your job actually worked</h2>
+  <div class="grid md:grid-cols-2 gap-8">
+    <div>
+      <h3 class="font-semibold text-white mb-4">1. Send JSON output with your ping</h3>
+      <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-4 overflow-x-auto">
+        <div class="text-gray-500 mb-3"># Bash</div>
+        <div class="text-gray-100">ROWS=$(run-etl-job.sh)</div>
+        <div class="text-gray-100 mt-2">curl -s -X POST \</div>
+        <div class="text-gray-100 pl-4">https://deadmancheck.io/ping/<span class="text-brand-500">token</span>/end \</div>
+        <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
+        <div class="text-gray-100 pl-4">-d "{\"rows\": $ROWS}"</div>
+      </div>
+      <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
+        <div class="text-gray-500 mb-3"># Python</div>
+        <div class="text-gray-100">result = run_etl()</div>
+        <div class="text-gray-100 mt-2">requests.post(</div>
+        <div class="text-gray-100 pl-4"><span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">token</span>/end"</span>,</div>
+        <div class="text-gray-100 pl-4">json={<span class="text-green-400">"rows"</span>: result.count,</div>
+        <div class="text-gray-100 pl-9">      <span class="text-green-400">"status"</span>: result.status}</div>
+        <div class="text-gray-100">)</div>
+      </div>
+    </div>
+    <div>
+      <h3 class="font-semibold text-white mb-4">2. Define assertions in the dashboard</h3>
+      <div class="space-y-3">
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-sm">
+          <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Example assertions</div>
+          <div class="font-mono space-y-1">
+            <div><span class="text-brand-500">rows</span> <span class="text-gray-400">&gt;</span> <span class="text-white">0</span></div>
+            <div><span class="text-brand-500">status</span> <span class="text-gray-400">==</span> <span class="text-green-400">"ok"</span></div>
+            <div><span class="text-brand-500">files_written</span> <span class="text-gray-400">&gt;=</span> <span class="text-white">1</span></div>
+            <div><span class="text-brand-500">error_count</span> <span class="text-gray-400">==</span> <span class="text-white">0</span></div>
+          </div>
+        </div>
+        <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-4 text-sm">
+          <div class="text-brand-500 text-xs mb-2 uppercase tracking-wide">If any assertion fails</div>
+          <div class="text-gray-300">Alert sent immediately — even though the job exited 0 and pinged on time.</div>
+        </div>
+      </div>
+      <p class="text-gray-500 text-sm mt-4">Available on Developer and higher plans.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Why exit code isn't enough -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Why exit code 0 isn't enough</h2>
+    <p class="text-gray-400 mb-6">
+      Exit codes communicate whether a process ran successfully — not whether it produced the right output. Most scheduled jobs are designed to handle empty responses, missing files, or API errors gracefully — which means they'll exit 0 even when nothing useful happened.
+    </p>
+    <div class="grid md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="text-yellow-400 font-semibold mb-2">Exit code tells you</div>
+        <ul class="text-gray-400 space-y-1">
+          <li>• The process started</li>
+          <li>• It didn't crash</li>
+          <li>• No unhandled exception</li>
+        </ul>
+      </div>
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 font-semibold mb-2">Exit code doesn't tell you</div>
+        <ul class="text-gray-400 space-y-1">
+          <li>• How many rows were processed</li>
+          <li>• Whether output was valid</li>
+          <li>• Whether anything was written</li>
+          <li>• Whether downstream systems got data</li>
+        </ul>
+      </div>
+      <div class="bg-gray-800 rounded-lg p-4">
+        <div class="text-brand-500 font-semibold mb-2">Checking results tells you</div>
+        <ul class="text-gray-300 space-y-1">
+          <li>• Exactly what your job produced</li>
+          <li>• Whether it meets your expectations</li>
+          <li>• Whether to trust the result</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Keyword variations -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Monitor cron jobs that succeed but do nothing</h2>
+    <p class="text-gray-400 mb-4">
+      If you're searching for <em>cron job succeeded but did nothing</em>, <em>job ran but returned empty data</em>, or <em>how to validate cron job output</em> — DeadManCheck is built for exactly this.
+    </p>
+    <p class="text-gray-400 mb-4">
+      The problem has a name now: <strong class="text-white">false success</strong>. Your job exits 0, your monitoring dashboard stays green, and your data pipeline silently stops working. It's the failure mode that standard monitoring tools were never designed to catch — because they only ask "did it run?", not "did it work?".
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck introduces a new check: send your job's output as JSON with the ping, set rules on what valid output looks like, and get alerted the moment your job produces nothing useful.
+    </p>
+  </div>
+</section>
+
+<!-- No other tool does this -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-2">DeadManCheck is the only cron monitoring tool that does this</h2>
+    <p class="text-brand-500 text-sm font-medium mb-4">Output monitoring is a new category. No other tool has it.</p>
+    <p class="text-gray-400 mb-6">
+      Healthchecks.io and Cronitor both monitor whether jobs run and whether they run on time. Neither can tell you what the job produced. If your backup copied 0 files or your ETL exported 0 rows, they stay green. DeadManCheck doesn't.
+    </p>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-800">
+            <th class="text-left py-2 pr-6 text-gray-500 font-normal">Capability</th>
+            <th class="text-center py-2 px-4 font-semibold text-brand-500">DeadManCheck</th>
+            <th class="text-center py-2 px-4 font-semibold text-gray-400">Healthchecks.io</th>
+            <th class="text-center py-2 px-4 font-semibold text-gray-400">Cronitor</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800/60">
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">Missing ping alert</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">Duration monitoring</td>
+            <td class="text-center py-3 px-4 text-green-400">✓ automatic</td>
+            <td class="text-center py-3 px-4 text-yellow-400">Manual grace period</td>
+            <td class="text-center py-3 px-4 text-yellow-400">Manual only</td>
+          </tr>
+          <tr class="bg-brand-500/5">
+            <td class="py-3 pr-6 text-gray-300">Output assertions <span class="text-xs text-brand-500 ml-1">unique</span></td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-gray-500">✗</td>
+            <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          </tr>
+          <tr class="bg-brand-500/5">
+            <td class="py-3 pr-6 text-gray-300">JSON output validation</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-gray-500">✗</td>
+            <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6 text-gray-300">Open source</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-green-400">✓</td>
+            <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Related guides</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/monitor-long-running-cron-jobs" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Monitor long-running cron jobs</div>
+      <div class="text-gray-400 text-xs mt-1">Alert when jobs take longer than expected</div>
+    </a>
+    <a href="/cron-job-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Overview</div>
+      <div class="text-white font-semibold text-sm">Cron job monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">All three failure modes explained</div>
+    </a>
+    <a href="/compare/vs-healthchecks" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Compare</div>
+      <div class="text-white font-semibold text-sm">vs Healthchecks.io</div>
+      <div class="text-gray-400 text-xs mt-1">Output assertions vs ping-only monitoring</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Stop trusting exit code 0</h2>
+  <p class="text-gray-400 mb-8">Job result checks are available on the Developer plan. Start with the free plan and upgrade when you need them.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}
