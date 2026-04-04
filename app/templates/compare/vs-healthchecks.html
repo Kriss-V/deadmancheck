@@ -1,62 +1,103 @@
 {% extends "base.html" %}
 
 {% block title %}DeadManCheck vs Healthchecks.io — Cron Job Monitoring Comparison{% endblock %}
+{% block meta_description %}Healthchecks.io tells you if your job ran. DeadManCheck tells you if it ran, how long it took, and whether it actually did anything. Here's the difference.{% endblock %}
 
 {% block content %}
 <section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
-  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Comparison</p>
-  <h1 class="text-4xl font-bold mb-6">DeadManCheck vs Healthchecks.io</h1>
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Healthchecks.io Alternative</p>
+  <h1 class="text-4xl font-bold mb-6">Your backup ran successfully.<br>It backed up nothing.</h1>
   <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-    Both tools monitor cron jobs. But only DeadManCheck alerts you when a job runs too long, runs but does nothing, or your site goes down.
+    Healthchecks.io would mark that green. DeadManCheck would alert you.
+    That's the difference.
   </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Try DeadManCheck free →</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart</a>
+  </div>
 </section>
 
-<!-- Quick verdict -->
+<!-- The problem -->
 <section class="max-w-4xl mx-auto px-6 pb-16">
-  <div class="grid md:grid-cols-2 gap-6">
-    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
-      <div class="text-brand-500 font-semibold text-sm mb-2">✓ Choose DeadManCheck if...</div>
-      <ul class="text-gray-300 text-sm space-y-2">
-        <li>• You need to catch jobs that run <strong>too long</strong>, not just jobs that go missing</li>
-        <li>• You want to validate your job's <strong>output</strong> on every ping (assertions)</li>
-        <li>• You want website uptime monitoring alongside cron monitoring</li>
-        <li>• You want a free public status page</li>
-        <li>• You want duration alerts with automatic baseline learning</li>
-      </ul>
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Healthchecks asks the wrong question</h2>
+    <p class="text-gray-400 mb-4">
+      Healthchecks.io monitors one thing: <strong class="text-white">did your job ping in time?</strong> If it did, everything is marked green. That model works — until your job runs, exits 0, and produces nothing useful.
+    </p>
+    <div class="my-6 bg-gray-800 rounded-lg p-5 text-sm font-mono">
+      <div class="text-gray-500 mb-3"># This is "success" to Healthchecks.io</div>
+      <div class="text-gray-100">backup.sh  <span class="text-green-400">→ exit 0</span></div>
+      <div class="text-gray-100">ping sent  <span class="text-green-400">→ ✓ received</span></div>
+      <div class="text-gray-100 mt-2">files backed up  <span class="text-red-400">→ 0</span>  <span class="text-gray-500"># silent failure</span></div>
     </div>
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-      <div class="text-gray-400 font-semibold text-sm mb-2">→ Healthchecks.io might suit you if...</div>
-      <ul class="text-gray-400 text-sm space-y-2">
-        <li>• You need 17+ notification channels (Signal, Matrix, XMPP etc.)</li>
-        <li>• You want systemd OnCalendar schedule syntax</li>
-      </ul>
+    <p class="text-gray-400 mb-4">
+      The source directory was empty. The auth token expired. The upstream API returned nothing. The job handled it gracefully — and your data pipeline silently stopped working.
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck lets you define what success actually means: rows exported, files written, exit status. If those assertions fail — even on an otherwise clean run — you get alerted.
+    </p>
+  </div>
+</section>
+
+<!-- Why Healthchecks fails here -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-6 text-center">Three failure modes. Healthchecks catches one.</h2>
+  <div class="grid md:grid-cols-3 gap-5">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">Failure 1</div>
+      <h3 class="font-semibold text-white mb-2">Job stops running</h3>
+      <p class="text-gray-400 text-sm mb-4">The classic dead man's switch. Expected ping never arrives.</p>
+      <div class="text-xs space-y-1">
+        <div class="flex justify-between"><span class="text-gray-400">Healthchecks.io</span><span class="text-green-400">✓ catches it</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">DeadManCheck</span><span class="text-green-400">✓ catches it</span></div>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-5">
+      <div class="text-sm font-semibold text-brand-500 uppercase tracking-wide mb-3">Failure 2</div>
+      <h3 class="font-semibold text-white mb-2">Job runs too long</h3>
+      <p class="text-gray-400 text-sm mb-4">2-minute backup is now taking 45 minutes. Something is wrong but the ping arrives.</p>
+      <div class="text-xs space-y-1">
+        <div class="flex justify-between"><span class="text-gray-400">Healthchecks.io</span><span class="text-yellow-400">Manual grace period only</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">DeadManCheck</span><span class="text-green-400">✓ automatic baseline</span></div>
+      </div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-5">
+      <div class="text-sm font-semibold text-brand-500 uppercase tracking-wide mb-3">Failure 3</div>
+      <h3 class="font-semibold text-white mb-2">Job runs but does nothing</h3>
+      <p class="text-gray-400 text-sm mb-4">Exit 0. Ping sent. Zero rows exported. Your data pipeline is broken.</p>
+      <div class="text-xs space-y-1">
+        <div class="flex justify-between"><span class="text-gray-400">Healthchecks.io</span><span class="text-red-400">✗ can't detect this</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">DeadManCheck</span><span class="text-green-400">✓ output assertions</span></div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- The key differentiator -->
+<!-- Your solution -->
 <section class="max-w-4xl mx-auto px-6 pb-16">
   <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
-    <h2 class="text-2xl font-bold mb-4">The difference that matters</h2>
-    <p class="text-gray-400 mb-6">
-      Healthchecks.io monitors one thing: did your job ping in time? If it didn't, you get an alert. That's the dead man's switch model, and it works well.
-    </p>
-    <p class="text-gray-400 mb-6">
-      But there's a second failure mode nobody talks about: <strong class="text-white">the job starts, but never finishes</strong>. A database backup that hung at 98%. A sync job stuck on a locked record. A scraper crawling 10× slower than expected. These all ping on schedule — so Healthchecks.io stays green while your infrastructure quietly falls behind.
-    </p>
-    <p class="text-gray-400">
-      DeadManCheck tracks both. When a job takes longer than its rolling average (or your hard limit), you get alerted — even if it technically started on time.
-    </p>
-    <div class="mt-6 grid md:grid-cols-2 gap-4">
-      <div class="bg-gray-800 rounded-lg p-4 text-sm">
-        <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Healthchecks.io</div>
-        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job pinged on time</div>
-        <div class="text-gray-500 text-xs mt-2">Job hung for 6 hours? Still green.</div>
+    <h2 class="text-2xl font-bold mb-4">How DeadManCheck closes the gap</h2>
+    <div class="space-y-6">
+      <div class="flex gap-4">
+        <div class="text-brand-500 font-bold text-lg shrink-0 w-6">1</div>
+        <div>
+          <div class="font-semibold text-white mb-1">Output assertions</div>
+          <p class="text-gray-400 text-sm">Send your job's output as JSON with the ping. Set rules like <code class="text-brand-500">rows &gt; 0</code> or <code class="text-brand-500">status == "ok"</code>. Alert fires if any assertion fails — even if the job exited 0.</p>
+        </div>
       </div>
-      <div class="bg-gray-800 rounded-lg p-4 text-sm">
-        <div class="text-brand-500 text-xs mb-2 uppercase tracking-wide">DeadManCheck</div>
-        <div class="flex items-center gap-2 text-green-400 mb-1">✓ Job pinged on time</div>
-        <div class="flex items-center gap-2 text-red-400">⚠ Job exceeded max duration → alert sent</div>
+      <div class="flex gap-4">
+        <div class="text-brand-500 font-bold text-lg shrink-0 w-6">2</div>
+        <div>
+          <div class="font-semibold text-white mb-1">Automatic duration baseline</div>
+          <p class="text-gray-400 text-sm">DeadManCheck learns your job's typical runtime. When it drifts significantly — stuck backup, slow query, degraded infrastructure — you get alerted without configuring any thresholds.</p>
+        </div>
+      </div>
+      <div class="flex gap-4">
+        <div class="text-brand-500 font-bold text-lg shrink-0 w-6">3</div>
+        <div>
+          <div class="font-semibold text-white mb-1">Same ping model — zero migration effort</div>
+          <p class="text-gray-400 text-sm">DeadManCheck uses the same <code class="text-brand-500">/start</code> and <code class="text-brand-500">/end</code> ping model as Healthchecks.io. Replace the URL. Done.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -87,8 +128,8 @@
         </tr>
         <tr>
           <td class="py-3 pr-6 text-gray-300">Long-running job detection</td>
-          <td class="text-center py-3 px-4 text-green-400">✓</td>
-          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ automatic</td>
+          <td class="text-center py-3 px-4 text-yellow-400">Manual grace period</td>
         </tr>
         <tr>
           <td class="py-3 pr-6 text-gray-300">Duration baseline learning</td>
@@ -141,7 +182,7 @@
           <td class="text-center py-3 px-4 text-green-400">✓ open source</td>
         </tr>
         <tr>
-          <td class="py-3 pr-6 text-gray-300">17+ notification channels</td>
+          <td class="py-3 pr-6 text-gray-300">20+ notification channels</td>
           <td class="text-center py-3 px-4 text-gray-500">✗</td>
           <td class="text-center py-3 px-4 text-green-400">✓</td>
         </tr>
@@ -199,9 +240,14 @@
           <td class="text-center py-3 px-4 text-gray-500">—</td>
         </tr>
         <tr>
+          <td class="py-3 pr-6 text-gray-300">Includes output assertions</td>
+          <td class="text-center py-3 px-4 text-green-400">✓ Developer+</td>
+          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+        </tr>
+        <tr>
           <td class="py-3 pr-6 text-gray-300">Includes duration monitoring</td>
           <td class="text-center py-3 px-4 text-green-400">✓ all plans</td>
-          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-yellow-400">Manual grace period</td>
         </tr>
       </tbody>
     </table>
@@ -209,32 +255,38 @@
   <p class="text-gray-500 text-xs text-center mt-4">Prices correct as of 2025. Check each provider's pricing page for current rates.</p>
 </section>
 
-<!-- Setup comparison -->
+<!-- When to choose each -->
 <section class="max-w-4xl mx-auto px-6 pb-16">
-  <h2 class="text-2xl font-bold mb-8 text-center">Setup — 2 lines either way</h2>
+  <h2 class="text-2xl font-bold mb-8 text-center">Which one is right for you?</h2>
   <div class="grid md:grid-cols-2 gap-6">
-    <div class="bg-gray-900 border border-brand-500/40 rounded-xl overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-800 text-xs text-brand-500 font-medium">DeadManCheck</div>
-      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://deadmancheck.io/ping/YOUR-ID/start
-./your_job.sh
-curl -s https://deadmancheck.io/ping/YOUR-ID</code></pre>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
+      <h3 class="font-semibold text-brand-500 mb-3">Choose DeadManCheck if</h3>
+      <ul class="text-gray-300 text-sm space-y-2">
+        <li>• You care about <strong>what your job produces</strong>, not just that it ran</li>
+        <li>• You've had silent failures — jobs that ran but wrote nothing</li>
+        <li>• You want duration alerts without configuring thresholds</li>
+        <li>• You want uptime monitoring alongside cron monitoring</li>
+        <li>• You want a free public status page</li>
+      </ul>
     </div>
-    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-800 text-xs text-gray-400 font-medium">Healthchecks.io</div>
-      <pre class="p-4 text-sm text-gray-300 overflow-x-auto"><code>curl -s https://hc-ping.com/YOUR-UUID/start
-./your_job.sh
-curl -s https://hc-ping.com/YOUR-UUID</code></pre>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <h3 class="font-semibold text-gray-400 mb-3">Stick with Healthchecks.io if</h3>
+      <ul class="text-gray-400 text-sm space-y-2">
+        <li>• You need ultra-simple ping-based monitoring and nothing more</li>
+        <li>• You need 20+ notification channels (Signal, Matrix, Mattermost etc.)</li>
+        <li>• You're on systemd and want OnCalendar schedule syntax</li>
+        <li>• The free tier of 20 monitors covers all your needs</li>
+      </ul>
     </div>
   </div>
-  <p class="text-center text-gray-500 text-sm mt-4">Same ping model. DeadManCheck adds automated duration alerting on top.</p>
 </section>
 
 <!-- CTA -->
 <section class="max-w-2xl mx-auto px-6 pb-24 text-center">
-  <h2 class="text-3xl font-bold mb-4">Try DeadManCheck free</h2>
-  <p class="text-gray-400 mb-8">5 monitors, no credit card. Takes 2 minutes to set up.</p>
+  <h2 class="text-3xl font-bold mb-4">Same setup. More coverage.</h2>
+  <p class="text-gray-400 mb-8">Replace your Healthchecks ping URL with a DeadManCheck one. Takes 2 minutes. Free plan, no card required.</p>
   <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
-    Start monitoring free →
+    Start free →
   </a>
   <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
 </section>
