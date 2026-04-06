@@ -92,7 +92,12 @@ async def send_duration_anomaly_alert(monitor: Monitor, duration: float, db: Asy
 """
     text = f"⏱ {monitor.name} took longer than expected\nDuration: {duration:.1f}s (avg: {avg:.1f}s)\n{settings.app_url}/monitors/{monitor.id}"
 
-    to_email = monitor.alert_email or await _get_user_email(monitor, db)
+    try:
+        to_email = monitor.alert_email or await _get_user_email(monitor, db)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"[alerts] failed to get email for duration anomaly: {e}")
+        to_email = None
     if to_email and settings.resend_api_key:
         resend.Emails.send({
             "from": settings.alert_from_email,
