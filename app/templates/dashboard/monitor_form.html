@@ -26,7 +26,7 @@
       <div class="flex gap-3 mb-3">
         <button type="button" id="btnPeriod" onclick="setScheduleType('period')"
           class="schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors border-brand-500 bg-brand-500/10 text-brand-400">
-          Every N minutes
+          Every N minutes/hours
         </button>
         <button type="button" id="btnCron" onclick="setScheduleType('cron')"
           class="schedule-tab px-4 py-2 rounded-lg text-sm border transition-colors border-gray-700 text-gray-400">
@@ -36,9 +36,14 @@
 
       <div id="periodInput">
         <div class="flex items-center gap-3">
-          <input type="number" name="period_minutes" min="1" value="{{ (monitor.period_seconds // 60) if monitor and monitor.period_seconds else 60 }}"
+          <input type="number" name="period_value" id="period_value" min="1" value="{{ (monitor.period_seconds // 3600) if monitor and monitor.period_seconds and (monitor.period_seconds % 3600 == 0) else ((monitor.period_seconds // 60) if monitor and monitor.period_seconds else 60) }}"
             class="w-32 bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors">
-          <span class="text-gray-400 text-sm">minutes</span>
+          <select name="period_unit" id="period_unit"
+            class="bg-gray-900 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2.5 text-white text-sm outline-none transition-colors">
+            <option value="minutes" {{ 'selected' if not monitor or not monitor.period_seconds or (monitor.period_seconds % 3600 != 0) else '' }}>minutes</option>
+            <option value="hours" {{ 'selected' if monitor and monitor.period_seconds and (monitor.period_seconds % 3600 == 0) else '' }}>hours</option>
+            <option value="days">days</option>
+          </select>
         </div>
       </div>
 
@@ -239,7 +244,11 @@ document.getElementById('monitorForm').addEventListener('submit', async (e) => {
   const data = {
     name: form.name.value,
     schedule_type: scheduleType,
-    period_seconds: scheduleType === 'period' ? parseInt(form.period_minutes.value) * 60 : null,
+    period_seconds: scheduleType === 'period' ? (() => {
+      const val = parseInt(form.period_value.value);
+      const unit = form.period_unit.value;
+      return unit === 'days' ? val * 86400 : unit === 'hours' ? val * 3600 : val * 60;
+    })() : null,
     cron_expression: scheduleType === 'cron' ? form.cron_expression.value : null,
     grace_seconds: parseInt(form.grace_minutes.value) * 60,
     expect_duration_enabled: form.expect_duration_enabled.checked,
