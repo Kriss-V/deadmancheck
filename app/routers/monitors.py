@@ -1,6 +1,7 @@
 """
 Monitor CRUD — dashboard API and HTML views.
 """
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -19,6 +20,7 @@ from app.services.scheduler import compute_next_expected
 
 router = APIRouter(tags=["monitors"])
 templates = Jinja2Templates(directory="app/templates")
+templates.env.filters["fromjson"] = json.loads
 
 PLAN_LIMITS = {
     "free": settings.plan_free_monitors,
