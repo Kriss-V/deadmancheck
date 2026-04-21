@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}ETL Job Monitoring — Catch Data Pipelines That Succeed But Do Nothing{% endblock %}
+{% block meta_description %}Monitor ETL jobs that go missing, run too long, or complete with zero rows exported. DeadManCheck catches silent data pipeline failures automatically.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">ETL Job Monitoring</p>
+  <h1 class="text-4xl font-bold mb-6">Your ETL job completed.<br>It exported 0 rows.</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    Data pipelines fail in ways that look like success. Exit 0, ping sent, dashboard green —
+    while your downstream tables sit empty. DeadManCheck catches it.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start monitoring free →</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart</a>
+  </div>
+</section>
+
+<!-- Visceral hit -->
+<section class="max-w-4xl mx-auto px-6 pb-10">
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-sm">
+      <div class="text-gray-500 text-xs uppercase tracking-wide mb-3">Standard monitoring</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ ETL ran at 04:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-500 text-xs mt-3">Rows inserted: <span class="text-red-400">0</span> &nbsp;·&nbsp; upstream API token expired</div>
+      <div class="text-gray-500 text-xs mt-1">Alert sent: no</div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-5 text-sm">
+      <div class="text-brand-500 text-xs uppercase tracking-wide mb-3">DeadManCheck</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ ETL ran at 04:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-300 text-xs mt-3">rows_inserted: 0 &nbsp;·&nbsp; assertion: <span class="text-brand-500">rows_inserted &gt; 0</span></div>
+      <div class="text-red-400 text-xs mt-1">⚠ Assertion failed — alert sent</div>
+    </div>
+  </div>
+</section>
+
+<!-- ETL failure scenarios -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-6">How ETL jobs fail silently</h2>
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">API token expired — upstream returned empty response</div>
+          <div class="text-gray-400 mt-1">Job handled the empty response gracefully. Exited 0. Inserted nothing. Your tables are now a day behind.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">Schema change upstream broke parsing — 0 records matched</div>
+          <div class="text-gray-400 mt-1">The source added a field. Your parser skipped every row. Exit 0. You won't notice until someone queries stale data.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-yellow-400 shrink-0 mt-0.5">⌛</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">10× more data than usual — job took 3 hours instead of 10 minutes</div>
+          <div class="text-gray-400 mt-1">The pipeline succeeded. But it's now competing with your morning workload and your users are hitting stale reads.</div>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-gray-800 rounded-lg p-4">
+        <div class="text-red-400 shrink-0 mt-0.5">⚠</div>
+        <div class="text-sm">
+          <div class="text-white font-medium">Deduplication logic removed all rows — net inserts: 0</div>
+          <div class="text-gray-400 mt-1">A logic change meant every incoming record was treated as a duplicate. The job ran fine. Nothing landed in your warehouse.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Setup -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-2">Monitor your ETL in 3 lines</h2>
+    <p class="text-gray-400 mb-6">Send row counts with your ping. Set assertions. Get alerted the moment your pipeline produces nothing.</p>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-4 overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Python</div>
+      <div class="text-gray-100">import requests</div>
+      <div class="text-gray-100 mt-1">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
+      <div class="text-gray-100 mt-2">result = run_etl_pipeline()</div>
+      <div class="text-gray-100 mt-2">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>,</div>
+      <div class="text-gray-100 pl-4">json={</div>
+      <div class="text-gray-100 pl-8"><span class="text-green-400">"rows_inserted"</span>: result.inserted,</div>
+      <div class="text-gray-100 pl-8"><span class="text-green-400">"rows_failed"</span>: result.failed,</div>
+      <div class="text-gray-100 pl-8"><span class="text-green-400">"source"</span>: result.source_name</div>
+      <div class="text-gray-100 pl-4">})</div>
+    </div>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Bash</div>
+      <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
+      <div class="text-gray-100 mt-1">ROWS=$(python etl.py --count-only)</div>
+      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end \</div>
+      <div class="text-gray-100 pl-4">-d "{\"rows_inserted\": $ROWS}"</div>
+    </div>
+    <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs font-mono">
+      <div class="bg-gray-800 rounded p-3"><span class="text-brand-500">rows_inserted</span> <span class="text-gray-400">&gt;</span> <span class="text-white">0</span></div>
+      <div class="bg-gray-800 rounded p-3"><span class="text-brand-500">rows_failed</span> <span class="text-gray-400">==</span> <span class="text-white">0</span></div>
+      <div class="bg-gray-800 rounded p-3"><span class="text-brand-500">source</span> <span class="text-gray-400">!=</span> <span class="text-green-400">"empty"</span></div>
+    </div>
+    <p class="text-gray-500 text-sm mt-3">Set these assertions in the dashboard. If any fail, you get alerted immediately.</p>
+  </div>
+</section>
+
+<!-- What you get -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Everything you need for ETL monitoring</h2>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Missing pipeline alerts</div>
+        <div class="text-gray-400 text-sm">Know immediately if your ETL doesn't run on schedule — before downstream queries hit stale data.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Duration monitoring</div>
+        <div class="text-gray-400 text-sm">Automatic baseline learning. Alert when your pipeline takes 10× longer than normal — before it impacts your users.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Did it actually insert any data?</div>
+        <div class="text-gray-400 text-sm">Validate row counts, error counts, source names — anything your ETL produces. Alert the moment your pipeline returns empty.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Works with any pipeline stack</div>
+        <div class="text-gray-400 text-sm">Airflow, dbt, Prefect, Luigi, custom Python/Bash scripts — anything that can make an HTTP request.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Related guides</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">How output assertions work</div>
+    </a>
+    <a href="/monitor-long-running-cron-jobs" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Monitor long-running cron jobs</div>
+      <div class="text-gray-400 text-xs mt-1">Catch pipelines that take far too long</div>
+    </a>
+    <a href="/backup-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Use case</div>
+      <div class="text-white font-semibold text-sm">Backup monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">Monitor backup jobs for silent failures</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Stop trusting "exit 0" on your data pipeline</h2>
+  <p class="text-gray-400 mb-8">Free plan. 5 monitors. No card required. Set up in 5 minutes.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start monitoring free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}

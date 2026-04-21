@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Monitoring — Know When Your Backup Runs But Backs Up Nothing{% endblock %}
+{% block meta_description %}Monitor backup jobs that go missing, run too long, or complete with zero files copied. DeadManCheck catches all three backup failure modes automatically.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pt-20 pb-12 text-center">
+  <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Backup Monitoring</p>
+  <h1 class="text-4xl font-bold mb-6">Your backup ran successfully.<br>It backed up nothing.</h1>
+  <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+    The most dangerous backup failure isn't a crash — it's a silent one. Job ran, exit 0, ping sent.
+    Zero files copied. DeadManCheck catches what standard monitoring misses.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">Start monitoring free →</a>
+    <a href="/docs/quickstart" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg font-semibold transition-colors">See quickstart</a>
+  </div>
+</section>
+
+<!-- Visceral hit -->
+<section class="max-w-4xl mx-auto px-6 pb-10">
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-sm">
+      <div class="text-gray-500 text-xs uppercase tracking-wide mb-3">Standard backup monitoring</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ backup.sh ran at 02:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-500 text-xs mt-3">Files copied: <span class="text-red-400">0</span> &nbsp;·&nbsp; source path was empty</div>
+      <div class="text-gray-500 text-xs mt-1">Alert sent: no</div>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-5 text-sm">
+      <div class="text-brand-500 text-xs uppercase tracking-wide mb-3">DeadManCheck</div>
+      <div class="space-y-1 font-mono text-xs">
+        <div class="text-green-400">✓ backup.sh ran at 02:00</div>
+        <div class="text-green-400">✓ Exit code 0</div>
+        <div class="text-green-400">✓ Ping received</div>
+      </div>
+      <div class="text-gray-300 text-xs mt-3">files_copied: 0 &nbsp;·&nbsp; assertion: <span class="text-brand-500">files_copied &gt; 0</span></div>
+      <div class="text-red-400 text-xs mt-1">⚠ Assertion failed — alert sent</div>
+    </div>
+  </div>
+</section>
+
+<!-- Three backup failure modes -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Three ways backups fail silently</h2>
+  <div class="grid md:grid-cols-3 gap-5">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+      <div class="text-red-400 text-xl mb-3">⏰</div>
+      <h3 class="font-semibold text-white mb-2">Backup stops running</h3>
+      <p class="text-gray-400 text-sm">The job never starts. Cron misconfiguration, server rebooted, scheduler broken. You get no ping and no alert — unless you're monitoring for it.</p>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-5">
+      <div class="text-yellow-400 text-xl mb-3">⌛</div>
+      <h3 class="font-semibold text-white mb-2">Backup runs too long</h3>
+      <p class="text-gray-400 text-sm">A 5-minute backup takes 3 hours. Slow disk, table lock, network issue. Standard monitoring stays green. DeadManCheck alerts when duration drifts from baseline.</p>
+    </div>
+    <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-5">
+      <div class="text-orange-400 text-xl mb-3">📭</div>
+      <h3 class="font-semibold text-white mb-2">Backup runs but copies nothing</h3>
+      <p class="text-gray-400 text-sm">Source path empty. Auth expired. Snapshot mounted to wrong directory. Job exits 0, ping sent, dashboard green — until you need to restore and there's nothing there.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Setup -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-2">Monitor your backup in 3 lines</h2>
+    <p class="text-gray-400 mb-6">Wrap your backup script. Send the file count with the ping. Set an assertion. Done.</p>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm mb-4 overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Bash — with duration + output monitoring</div>
+      <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
+      <div class="text-gray-100 mt-1">FILES=$(rsync -av /source/ /backup/ | grep -c "^")</div>
+      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end \</div>
+      <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
+      <div class="text-gray-100 pl-4">-d "{\"files_copied\": $FILES}"</div>
+    </div>
+    <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
+      <div class="text-gray-500 mb-3"># Python</div>
+      <div class="text-gray-100">import requests, subprocess</div>
+      <div class="text-gray-100 mt-1">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
+      <div class="text-gray-100 mt-1">result = run_backup()</div>
+      <div class="text-gray-100 mt-1">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>,</div>
+      <div class="text-gray-100 pl-4">json={<span class="text-green-400">"files_copied"</span>: result.count, <span class="text-green-400">"size_mb"</span>: result.size_mb})</div>
+    </div>
+    <p class="text-gray-500 text-sm mt-4">Then set assertion <code class="text-brand-500">files_copied &gt; 0</code> in the dashboard. Alert fires if your backup ever runs empty.</p>
+  </div>
+</section>
+
+<!-- What you get -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-2xl font-bold mb-8 text-center">Everything you need for backup monitoring</h2>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Missing backup alerts</div>
+        <div class="text-gray-400 text-sm">Alert via email, Slack, or webhook when your backup job doesn't check in on schedule.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Duration monitoring</div>
+        <div class="text-gray-400 text-sm">Learns your backup's normal runtime. Alerts when it takes significantly longer — disk issues, slow network, unexpectedly large datasets.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Did it actually back anything up?</div>
+        <div class="text-gray-400 text-sm">Validate files copied, bytes written, or any metric your backup produces. Alert the moment your backup runs empty.</div>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <div class="text-brand-500 mt-0.5 shrink-0">✓</div>
+      <div>
+        <div class="text-white font-medium text-sm">Works with any backup tool</div>
+        <div class="text-gray-400 text-sm">rsync, pg_dump, mysqldump, Restic, Borg, rclone, custom scripts — anything that runs from a shell.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Internal links -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <h2 class="text-xl font-semibold mb-6 text-gray-300">Related guides</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">How output assertions work</div>
+    </a>
+    <a href="/monitor-long-running-cron-jobs" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
+      <div class="text-white font-semibold text-sm">Monitor long-running cron jobs</div>
+      <div class="text-gray-400 text-xs mt-1">Catch backups that take far too long</div>
+    </a>
+    <a href="/etl-job-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+      <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Use case</div>
+      <div class="text-white font-semibold text-sm">ETL job monitoring</div>
+      <div class="text-gray-400 text-xs mt-1">Monitor data pipelines for silent failures</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="max-w-2xl mx-auto px-6 pb-24 text-center">
+  <h2 class="text-3xl font-bold mb-4">Know your backup actually worked</h2>
+  <p class="text-gray-400 mb-8">Free plan. 5 monitors. No card required. Set up in 5 minutes.</p>
+  <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-3.5 rounded-lg font-semibold text-lg transition-colors inline-block">
+    Start monitoring free →
+  </a>
+  <p class="text-gray-500 text-sm mt-4">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free on GitHub</a></p>
+</section>
+{% endblock %}

@@ -8,7 +8,7 @@
   <p class="text-brand-500 text-sm font-medium uppercase tracking-widest mb-4">Duration Monitoring</p>
   <h1 class="text-4xl font-bold mb-6">Your cron job didn't fail.<br>It just took 45 minutes instead of 2.</h1>
   <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-    Most monitoring tools stay green while your infrastructure quietly degrades.
+    Most tools only check if your job ran. They don't check how long it took.
     DeadManCheck learns your job's normal runtime and alerts when it drifts — automatically, no thresholds to configure.
   </p>
   <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
@@ -112,6 +112,22 @@
       <div class="text-gray-100">run_your_job()</div>
       <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>)</div>
     </div>
+  </div>
+</section>
+
+<!-- Keyword variations / common searches -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-4">Catch cron jobs that are getting slower</h2>
+    <p class="text-gray-400 mb-4">
+      Whether you're searching for <em>how to detect slow cron jobs</em>, <em>alert when cron job duration increases</em>, or <em>cron job taking too long to complete</em> — this is the page.
+    </p>
+    <p class="text-gray-400 mb-4">
+      Runtime degradation is one of the hardest infrastructure problems to catch because it happens gradually. A job that used to take 30 seconds now takes 5 minutes. No crash, no error, no alert — just a slow creep that compounds over days until something downstream breaks.
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck solves this by building a rolling baseline from your job's real execution history. When a run deviates significantly — whether it's a one-off spike or a gradual drift — you get alerted. No manual thresholds to set or maintain.
+    </p>
   </div>
 </section>
 

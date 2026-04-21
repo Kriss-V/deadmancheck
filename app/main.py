@@ -65,3 +65,28 @@ async def vs_healthchecks(request: Request):
 @app.get("/compare/vs-cronitor", response_class=HTMLResponse)
 async def vs_cronitor(request: Request):
     return templates.TemplateResponse("compare/vs-cronitor.html", {"request": request})
+
+
+@app.get("/cron-job-monitoring", response_class=HTMLResponse)
+async def cron_job_monitoring(request: Request):
+    return templates.TemplateResponse("cron-job-monitoring.html", {"request": request})
+
+
+@app.get("/monitor-long-running-cron-jobs", response_class=HTMLResponse)
+async def monitor_long_running(request: Request):
+    return templates.TemplateResponse("monitor-long-running-cron-jobs.html", {"request": request})
+
+
+@app.get("/cron-job-output-monitoring", response_class=HTMLResponse)
+async def cron_job_output_monitoring(request: Request):
+    return templates.TemplateResponse("cron-job-output-monitoring.html", {"request": request})
+
+
+@app.get("/backup-monitoring", response_class=HTMLResponse)
+async def backup_monitoring(request: Request):
+    return templates.TemplateResponse("backup-monitoring.html", {"request": request})
+
+
+@app.get("/etl-job-monitoring", response_class=HTMLResponse)
+async def etl_job_monitoring(request: Request):
+    return templates.TemplateResponse("etl-job-monitoring.html", {"request": request})
