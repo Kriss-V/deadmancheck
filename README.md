@@ -66,7 +66,7 @@ If duration monitoring is enabled and the job takes longer than expected (hard m
 
 Don't want to run your own instance? Use [DeadManCheck.io](https://deadmancheck.io) — same codebase, managed for you.
 
-Free for 5 monitors. Paid plans from £9/month.
+Free for 5 monitors. Paid plans from $12/month.
 
 ## License
 
