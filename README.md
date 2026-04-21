@@ -1,18 +1,21 @@
 # DeadManCheck
 
-Open source cron job monitoring with **duration anomaly detection**.
+Open source cron job monitoring. Know when your scheduled jobs go silent, run too long, or produce wrong output.
 
-Know when your scheduled jobs:
-- Go silent (classic dead man's switch)
-- Run but take **too long** (duration monitoring — unique to DeadManCheck)
-- Explicitly fail
+- **Dead man's switch** — alert if no ping within schedule + grace period
+- **Duration monitoring** — alert if job takes too long (automatic baseline via rolling average)
+- **Output assertions** — validate job payload on ping (e.g. `rows_exported > 0`) — no competitor has this
+- **Website uptime monitoring** — active HTTP polling with alerts
+- **Public status pages** — share a live status URL, free on all plans
+- **Multi-channel alerts** — Email, Slack, Discord, Telegram, PagerDuty, Webhook
+- **Prometheus metrics** — `/metrics` endpoint for scraping
 
 ## Self-hosting
 
 **Requirements:** Python 3.12+, PostgreSQL 14+, Redis 6+
 
 ```bash
-git clone https://github.com/yourusername/deadmancheck
+git clone https://github.com/Kriss-V/deadmancheck
 cd deadmancheck
 
 cp .env.example .env
@@ -44,20 +47,23 @@ curl https://your-instance.com/ping/YOUR-MONITOR-ID/start
 ./your_job.sh
 curl https://your-instance.com/ping/YOUR-MONITOR-ID
 
+# With output assertions (Developer+ on hosted)
+curl -X POST https://your-instance.com/ping/YOUR-MONITOR-ID \
+  -H "Content-Type: application/json" \
+  -d '{"rows_exported": 1523, "status": "ok"}'
+
 # Report explicit failure
 curl https://your-instance.com/ping/YOUR-MONITOR-ID/fail?exit_code=1
 ```
 
-If we don't receive a ping within `schedule + grace_period`, an alert fires.
-
-If duration monitoring is enabled and the job takes longer than expected (hard max or >X% of rolling average), a separate duration anomaly alert fires.
+If no ping is received within `schedule + grace_period`, an alert fires. If the job runs but takes longer than expected, a duration anomaly alert fires separately.
 
 ## Stack
 
 - **FastAPI** — API and server-rendered UI
 - **PostgreSQL** — primary store (users, monitors, pings)
 - **Redis** — start-ping cache for duration tracking (optional, falls back to in-memory)
-- **APScheduler** — background checker, runs every 30s
+- **APScheduler** — background checker
 - **Resend** — transactional email
 - **Stripe** — billing (hosted cloud version only)
 - **Alembic** — database migrations
@@ -66,7 +72,12 @@ If duration monitoring is enabled and the job takes longer than expected (hard m
 
 Don't want to run your own instance? Use [DeadManCheck.io](https://deadmancheck.io) — same codebase, managed for you.
 
-Free for 5 monitors. Paid plans from $12/month.
+| Plan | Price | Monitors |
+|---|---|---|
+| Hobby | Free | 5 |
+| Developer | $12/month | 100 |
+| Team | $39/month | 200 |
+| Business | $99/month | Unlimited |
 
 ## License
 
