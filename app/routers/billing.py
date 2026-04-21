@@ -11,7 +11,7 @@ Flow:
 import logging
 
 import stripe
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,10 +40,14 @@ PRICE_TO_PLAN = {v: k for k, v in PLAN_PRICE_IDS.items() if v}
 @router.post("/checkout")
 async def create_checkout(
     plan: str,
-    user: User = Depends(get_current_user),
+    access_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Redirect logged-in user to Stripe Checkout for the given plan."""
+    """Redirect to Stripe Checkout, or to register page if not logged in."""
+    if not access_token:
+        return RedirectResponse(f"/register?plan={plan}", status_code=303)
+
+    user: User = await get_current_user(access_token=access_token, db=db)
     price_id = PLAN_PRICE_IDS.get(plan)
     if not price_id:
         raise HTTPException(status_code=400, detail=f"Unknown plan: {plan}")
