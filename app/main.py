@@ -36,7 +36,6 @@ app.include_router(monitors.router)
 app.include_router(billing.router)
 app.include_router(status_pages.router)
 app.include_router(uptime.router)
-app.include_router(seo_pages.router)  # must be last — catches dynamic slugs
 
 
 @app.get("/health")
@@ -160,3 +159,6 @@ async def backup_monitoring(request: Request):
 @app.get("/etl-job-monitoring", response_class=HTMLResponse)
 async def etl_job_monitoring(request: Request):
     return templates.TemplateResponse("etl-job-monitoring.html", {"request": request})
+
+
+app.include_router(seo_pages.router)  # must be last — catches dynamic slugs
