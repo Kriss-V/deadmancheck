@@ -2,6 +2,36 @@
 
 {% block meta_description %}Cron job monitoring that knows when your job ran but did nothing. Alerts for missed runs, timeouts, and zero-output jobs. Free for 5 monitors, $12/mo for 100.{% endblock %}
 
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "DeadManCheck",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Cron job and background job monitoring with output assertions, duration monitoring, and rolling average anomaly detection. Open source and self-hostable.",
+  "url": "https://deadmancheck.io",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Hobby",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "Free for 5 monitors"
+    },
+    {
+      "@type": "Offer",
+      "name": "Developer",
+      "price": "12",
+      "priceCurrency": "USD",
+      "description": "100 monitors, output assertions, Slack and Discord alerts"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <!-- Hero -->
 <section class="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
