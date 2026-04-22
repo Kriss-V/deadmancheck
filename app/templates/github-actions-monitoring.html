@@ -1,0 +1,153 @@
+{# slug: github-actions-monitoring | keyword: github actions scheduled monitoring | pillar: use-case #}
+{% extends "base.html" %}
+
+{% block title %}GitHub Actions Scheduled Workflow Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor GitHub Actions scheduled workflows with dead man's switch alerting. Get notified when scheduled jobs stop running, fail silently, or GitHub delays push them past their window.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">GitHub Actions Scheduled Workflow Monitoring</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    GitHub doesn't alert you when a scheduled workflow stops running. External monitoring does.
+    Add a dead man's switch to any GitHub Actions schedule in under 5 minutes.
+  </p>
+
+  <!-- The problem -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Why GitHub Actions scheduled workflows fail silently</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">GitHub delays scheduled workflows</span> — during high load, a 2:00am workflow may run at 2:47am or later. No notification.</li>
+      <li><span class="text-white font-medium">Inactive repos lose scheduling</span> — 60 days without commits and GitHub disables your scheduled workflows. You get one email. Miss it and jobs stop forever.</li>
+      <li><span class="text-white font-medium">Workflow failures don't ping you by default</span> — GitHub sends email on failure, but if your steps succeed while producing nothing, no alert fires.</li>
+      <li><span class="text-white font-medium">Silent output failures</span> — your export script runs, exits 0, processes 0 records. GitHub marks the workflow as passed.</li>
+    </ul>
+  </div>
+
+  <!-- Integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Setting up monitoring in 5 minutes</h2>
+
+    <p class="text-gray-400 mb-4">
+      1. Create a monitor at <a href="/register" class="text-brand-500 hover:underline">deadmancheck.io</a>.
+      Set the interval to 25 hours (1-hour buffer for GitHub scheduling delays).
+      Copy your token.
+    </p>
+    <p class="text-gray-400 mb-4">
+      2. Add your token to GitHub: Settings → Secrets and variables → Actions → New secret → <code class="bg-gray-800 px-1 rounded text-sm">DEADMANCHECK_TOKEN</code>
+    </p>
+    <p class="text-gray-400 mb-6">
+      3. Add the ping step to your workflow:
+    </p>
+
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      name: Nightly export<br>
+      <br>
+      on:<br>
+      &nbsp;&nbsp;schedule:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;- cron: '0 2 * * *'<br>
+      &nbsp;&nbsp;workflow_dispatch: <span class="text-gray-500"># for testing</span><br>
+      <br>
+      jobs:<br>
+      &nbsp;&nbsp;export:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;runs-on: ubuntu-latest<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;timeout-minutes: 30<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;steps:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- uses: actions/checkout@v4<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: Ping start<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: curl -fsS https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }}/start > /dev/null<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: Run export<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: python scripts/export.py<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500">- name: Ping done</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500">if: success()</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500">run: curl -fsS https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }} > /dev/null</span><br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: Ping fail<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if: failure()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: curl -fsS https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }}/fail > /dev/null
+    </div>
+
+    <p class="text-gray-400">
+      The ping only fires on <code class="bg-gray-800 px-1 rounded text-sm">if: success()</code>.
+      If any step fails, the fail ping fires instead. If the workflow never runs at all,
+      neither fires — and DeadManCheck alerts you after 25 hours of silence.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Adding output assertions</h2>
+    <p class="text-gray-400 mb-4">
+      To catch jobs that run but process nothing, include a count with the ping:
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4">
+      - name: Run export<br>
+      &nbsp;&nbsp;id: export<br>
+      &nbsp;&nbsp;run: |<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;python scripts/export.py<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;echo "rows=$(cat /tmp/export_count.txt)" >> $GITHUB_OUTPUT<br>
+      <br>
+      - name: Ping done<br>
+      &nbsp;&nbsp;if: success()<br>
+      &nbsp;&nbsp;run: |<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;curl -fsS <span class="text-brand-500">"https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }}?count=${{ "{{" }} steps.export.outputs.rows {{ "}}" }}"</span> > /dev/null
+    </div>
+    <p class="text-gray-400">
+      Configure the assertion in DeadManCheck: "alert if count is 0". Now a successful workflow
+      that exported nothing triggers an alert. See
+      <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">output assertions →</a>
+    </p>
+  </div>
+
+  <!-- Gotchas -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">GitHub Actions scheduling gotchas</h2>
+    <ul class="text-gray-400 space-y-4">
+      <li>
+        <span class="text-white font-medium">Set your monitor interval to 25 hours, not 24.</span>
+        GitHub regularly delays scheduled workflows by 15–60 minutes. A 24-hour alert window
+        triggers false alerts constantly.
+      </li>
+      <li>
+        <span class="text-white font-medium">Always add workflow_dispatch.</span>
+        Test your monitoring before the first scheduled run. Trigger manually with
+        <code class="bg-gray-800 px-1 rounded text-sm">gh workflow run your-workflow.yml</code>
+        and verify the ping appears in your DeadManCheck dashboard.
+      </li>
+      <li>
+        <span class="text-white font-medium">Add timeout-minutes.</span>
+        Without a timeout, a hung job consumes a runner indefinitely. 30 minutes is a sensible
+        default for most scheduled tasks.
+      </li>
+      <li>
+        <span class="text-white font-medium">Use || true on monitoring pings.</span>
+        A DeadManCheck outage shouldn't cause your backup workflow to report as failed.
+        <code class="bg-gray-800 px-1 rounded text-sm">curl ... || true</code> swallows curl errors.
+      </li>
+    </ul>
+  </div>
+
+  <!-- Internal links -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related monitoring guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that do nothing</a></li>
+      <li><a href="/backup-monitoring" class="text-brand-500 hover:underline">Backup job monitoring</a></li>
+      <li><a href="/etl-job-monitoring" class="text-brand-500 hover:underline">ETL job monitoring</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. <a href="/pricing" class="text-brand-500 hover:underline">See pricing →</a></p>
+  </div>
+
+</section>
+{% endblock %}

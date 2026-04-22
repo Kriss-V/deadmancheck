@@ -1,0 +1,156 @@
+{# slug: celery-task-monitoring | keyword: celery task monitoring | pillar: use-case #}
+{% extends "base.html" %}
+
+{% block title %}Celery Task Monitoring — Know When Your Workers Go Silent{% endblock %}
+{% block meta_description %}Monitor Celery tasks with dead man's switch alerting and output assertions. Get alerted when tasks stop running, take too long, or complete without processing anything.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Celery Task Monitoring: Know When Your Workers Go Silent</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Celery is great at running tasks. It's silent when they stop. Add monitoring in two lines
+    and know immediately when something goes wrong — whether a task didn't run, took too long,
+    or ran but processed nothing.
+  </p>
+
+  <!-- The problem -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What breaks when Celery tasks aren't monitored</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Workers crash silently</span> — a worker process dies, tasks queue up, nothing gets processed. Celery Beat keeps scheduling, nothing runs. Your app looks fine.</li>
+      <li><span class="text-white font-medium">Broker connection lost</span> — Redis or RabbitMQ becomes unreachable. Beat can't enqueue. Tasks silently stop.</li>
+      <li><span class="text-white font-medium">Tasks succeed but do nothing</span> — the task runs, returns <code class="bg-gray-800 px-1 rounded text-sm">SUCCESS</code>, processes 0 records. No Celery alert. Silent data gap.</li>
+      <li><span class="text-white font-medium">Task duration spikes</span> — a task that normally takes 30 seconds starts taking 20 minutes. Workers block. Queue backs up.</li>
+    </ul>
+  </div>
+
+  <!-- What to monitor -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What to monitor in Celery</h2>
+    <p class="text-gray-400 mb-4">
+      Flower and Prometheus/Grafana are great for real-time dashboards. But they don't alert you
+      when a periodic task simply stops running. For that you need a dead man's switch:
+      the task pings a URL when it completes, and you're alerted if the ping doesn't arrive.
+    </p>
+    <p class="text-gray-400">
+      The three things worth monitoring per periodic task:
+    </p>
+    <ul class="text-gray-400 space-y-2 mt-3">
+      <li>1. <span class="text-white">Did it run?</span> — heartbeat check</li>
+      <li>2. <span class="text-white">Did it finish in reasonable time?</span> — duration monitoring</li>
+      <li>3. <span class="text-white">Did it actually process anything?</span> — output assertion</li>
+    </ul>
+  </div>
+
+  <!-- Integration code -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Integrating DeadManCheck with Celery</h2>
+    <p class="text-gray-400 mb-4">
+      The simplest approach: ping at the end of each periodic task. Create one monitor per task
+      at <a href="/pricing" class="text-brand-500 hover:underline">deadmancheck.io</a>, set the
+      expected interval to match your Beat schedule, and add the ping.
+    </p>
+
+    <h3 class="text-lg font-semibold mb-3">Basic ping (heartbeat)</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      <span class="text-gray-500"># tasks.py</span><br>
+      import requests<br>
+      from celery import shared_task<br>
+      <br>
+      @shared_task<br>
+      def sync_orders():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;orders = fetch_orders_from_api()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;save_to_db(orders)<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500"># Ping DeadManCheck on success</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"https://deadmancheck.io/ping/YOUR-TOKEN",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params={"count": len(orders)},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout=5<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;)
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">With start/end and error handling</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      import os, requests<br>
+      from celery import shared_task<br>
+      <br>
+      TOKEN = os.environ["DEADMANCHECK_TOKEN"]<br>
+      BASE = f"https://deadmancheck.io/ping/{TOKEN}"<br>
+      <br>
+      def _ping(path="", count=None):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params = {"count": count} if count is not None else {}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}{path}", params=params, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pass  <span class="text-gray-500"># never let monitoring break the task</span><br>
+      <br>
+      @shared_task(bind=True, max_retries=3)<br>
+      def nightly_etl(self):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;_ping("/start")<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count = run_etl_pipeline()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_ping(count=count)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception as exc:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_ping("/fail")<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise self.retry(exc=exc)
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Reusable decorator for all periodic tasks</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono">
+      import functools, requests, os<br>
+      <br>
+      def monitor(token):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;base = f"https://deadmancheck.io/ping/{token}"<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;def decorator(fn):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@functools.wraps(fn)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;def wrapper(*args, **kwargs):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{base}/start", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except Exception: pass<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = fn(*args, **kwargs)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(base, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{base}/fail", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return wrapper<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return decorator<br>
+      <br>
+      <span class="text-brand-500">@monitor(os.environ["SYNC_TOKEN"])</span><br>
+      @shared_task<br>
+      def sync_orders():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;...
+    </div>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions for Celery tasks</h2>
+    <p class="text-gray-400 mb-4">
+      Celery reports task success/failure based on whether the function raised an exception.
+      It has no concept of "this task ran but did nothing useful."
+    </p>
+    <p class="text-gray-400">
+      Send a <code class="bg-gray-800 px-1 rounded text-sm">count</code> with your ping and
+      configure an output assertion in DeadManCheck: "alert if count is 0". Now a Celery task
+      that runs but processes zero records triggers an alert — even though Celery says
+      <code class="bg-gray-800 px-1 rounded text-sm">SUCCESS</code>.
+    </p>
+    <p class="text-gray-400 mt-3">
+      See how <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">output assertions work →</a>
+    </p>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. See <a href="/pricing" class="text-brand-500 hover:underline">pricing →</a></p>
+  </div>
+
+</section>
+{% endblock %}

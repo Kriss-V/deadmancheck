@@ -1,0 +1,126 @@
+{# slug: railway-cron-monitoring | keyword: railway cron job monitoring | pillar: platform #}
+{% extends "base.html" %}
+
+{% block title %}Railway Cron Job Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor Railway cron jobs with dead man's switch alerting. Railway provides no built-in cron failure alerts — DeadManCheck fills that gap in 2 minutes.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Cron Job Monitoring for Railway</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Railway's cron jobs run your services on a schedule. Railway doesn't alert you when they fail
+    or stop running. DeadManCheck does — in two minutes of setup.
+  </p>
+
+  <!-- How Railway cron works -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">How cron jobs work on Railway</h2>
+    <p class="text-gray-400 mb-4">
+      Railway cron jobs start a service on a cron schedule, run it to completion, then stop it.
+      The minimum interval is 5 minutes. There's no built-in alerting when a job fails or stops
+      running — Railway logs the run, but it won't page you.
+    </p>
+    <p class="text-gray-400">
+      That means a Railway cron job that crashes, hangs, or silently processes nothing will go
+      unnoticed until you happen to check the logs.
+    </p>
+  </div>
+
+  <!-- What can go wrong -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What can go wrong on Railway</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Service fails to start</span> — misconfigured environment variable, missing dependency, Railway deploy issue. Job scheduled, never runs.</li>
+      <li><span class="text-white font-medium">Job exits non-zero</span> — Railway logs the failure but sends no alert. You find out when someone notices missing data.</li>
+      <li><span class="text-white font-medium">Job exits 0 but does nothing</span> — database connection string changed, API token expired. Script runs, returns success, processes nothing.</li>
+      <li><span class="text-white font-medium">Job takes much longer than usual</span> — data volume grew, downstream API is slow. Duration spikes silently.</li>
+    </ul>
+  </div>
+
+  <!-- Integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Integrating DeadManCheck with Railway</h2>
+    <p class="text-gray-400 mb-4">
+      Create a monitor at <a href="/register" class="text-brand-500 hover:underline">deadmancheck.io</a>,
+      set the interval to match your Railway cron schedule, and add the ping to your service.
+    </p>
+
+    <h3 class="text-lg font-semibold mb-3">For a Python service</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      import requests, os<br>
+      <br>
+      TOKEN = os.environ["DEADMANCHECK_TOKEN"]<br>
+      BASE = f"https://deadmancheck.io/ping/{TOKEN}"<br>
+      <br>
+      def main():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/start", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count = run_job()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(BASE, params={"count": count}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/fail", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise<br>
+      <br>
+      if __name__ == "__main__":<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;main()
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">For a bash/shell service</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      #!/bin/bash<br>
+      set -euo pipefail<br>
+      <br>
+      BASE="https://deadmancheck.io/ping/${DEADMANCHECK_TOKEN}"<br>
+      <br>
+      curl -fsS "${BASE}/start" > /dev/null<br>
+      trap 'curl -fsS "${BASE}/fail" > /dev/null' ERR<br>
+      <br>
+      /app/run-export.sh<br>
+      <br>
+      curl -fsS "${BASE}" > /dev/null
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Setting the environment variable on Railway</h3>
+    <p class="text-gray-400 mb-3">
+      Add <code class="bg-gray-800 px-1 rounded text-sm">DEADMANCHECK_TOKEN</code> to your Railway
+      service's environment variables: Railway dashboard → your service → Variables → Add variable.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions for Railway jobs</h2>
+    <p class="text-gray-400 mb-4">
+      Railway's cron only knows whether your service exited 0 or non-zero. It has no concept of
+      "this job ran but processed nothing."
+    </p>
+    <p class="text-gray-400">
+      Include a count in your DeadManCheck ping and configure an assertion: "alert if count is 0".
+      Now your Railway backup job that silently exports nothing triggers an alert — even though
+      Railway marks it as successful. Learn more about
+      <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">output assertions →</a>
+    </p>
+  </div>
+
+  <!-- Internal links -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/backup-monitoring" class="text-brand-500 hover:underline">Backup job monitoring</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that do nothing</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100.</p>
+  </div>
+
+</section>
+{% endblock %}

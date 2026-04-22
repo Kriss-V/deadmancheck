@@ -1,0 +1,181 @@
+{# slug: compare/vs-dead-mans-snitch | keyword: dead man's snitch alternative | pillar: comparison #}
+{% extends "base.html" %}
+
+{% block title %}DeadManCheck vs Dead Man's Snitch — More Monitoring for Less{% endblock %}
+{% block meta_description %}Dead Man's Snitch alternative with output assertions, duration anomaly detection, and 100 monitors for $12/mo vs $19/mo. Honest comparison with pricing and feature breakdown.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">DeadManCheck vs Dead Man's Snitch</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Dead Man's Snitch is a solid, simple cron monitor. DeadManCheck does everything it does,
+    adds output assertions and duration anomaly detection, and costs less. Here's the full breakdown.
+  </p>
+
+  <!-- Quick comparison table -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Feature comparison</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="border-b border-gray-800">
+            <th class="py-3 pr-6 text-gray-300 font-semibold">Feature</th>
+            <th class="py-3 pr-6 text-brand-500 font-semibold">DeadManCheck</th>
+            <th class="py-3 text-gray-400 font-semibold">Dead Man's Snitch</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-400">
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">100 monitors</td>
+            <td class="py-3 pr-6 text-green-400">$12/mo</td>
+            <td class="py-3">$19/mo</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Free tier</td>
+            <td class="py-3 pr-6 text-green-400">5 monitors</td>
+            <td class="py-3">1 snitch</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Output assertions</td>
+            <td class="py-3 pr-6 text-green-400">Yes</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Duration anomaly detection</td>
+            <td class="py-3 pr-6 text-green-400">Yes (rolling avg)</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Open source / self-hostable</td>
+            <td class="py-3 pr-6 text-green-400">Yes</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Slack / Discord / Telegram alerts</td>
+            <td class="py-3 pr-6 text-green-400">Yes (all plans)</td>
+            <td class="py-3">Paid plans only</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6">PagerDuty integration</td>
+            <td class="py-3 pr-6 text-green-400">$39/mo (Team)</td>
+            <td class="py-3">$49/mo (Surveillance Van)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Where DMS wins -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Where Dead Man's Snitch wins</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Field Agent</span> — DMS has a local daemon that monitors cron jobs without requiring outbound HTTP from the job itself. Useful in locked-down environments.</li>
+      <li><span class="text-white font-medium">Established track record</span> — DMS has been around since 2012. If you're already using it and happy with the basics, switching isn't urgent.</li>
+      <li><span class="text-white font-medium">Unlimited team members on all plans</span> — even the $5/mo plan includes unlimited teammates.</li>
+    </ul>
+  </div>
+
+  <!-- Where DMC wins -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Where DeadManCheck wins</h2>
+
+    <div class="space-y-6">
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Output assertions — the check DMS can't do</h3>
+        <p class="text-gray-400">
+          Dead Man's Snitch asks one question: did the job check in? DeadManCheck asks a second:
+          did it actually do anything? Send a <code class="bg-gray-800 px-1 rounded text-sm">count</code>
+          with your ping and set an assertion — "alert if count is 0". Your backup job running but
+          exporting nothing gets caught. DMS lets it through.
+        </p>
+        <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mt-3">
+          <span class="text-gray-500"># One extra param. One extra layer of protection.</span><br>
+          curl -fsS "https://deadmancheck.io/ping/TOKEN<span class="text-brand-500">?count=1547</span>" &gt; /dev/null
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Duration anomaly detection</h3>
+        <p class="text-gray-400">
+          If your 90-second ETL job starts taking 45 minutes, DeadManCheck flags it using a rolling
+          average baseline. DMS has no concept of "this job is taking longer than usual."
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Open source and self-hostable</h3>
+        <p class="text-gray-400">
+          DeadManCheck is open source on
+          <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">GitHub</a>.
+          Run it yourself for free. DMS is closed-source SaaS only.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Pricing breakdown</h2>
+    <div class="text-gray-400 space-y-3">
+      <p>At 100 monitors: <span class="text-white">Dead Man's Snitch $19/mo → DeadManCheck $12/mo.</span> We're cheaper at this tier.</p>
+      <p>At 300 monitors: <span class="text-white">Dead Man's Snitch $49/mo → DeadManCheck $39/mo (Team).</span> Still cheaper, with PagerDuty included.</p>
+      <p>Free tier: <span class="text-white">DMS gives 1 snitch. DeadManCheck gives 5 monitors.</span></p>
+      <p class="text-sm pt-2">DMS pricing verified April 2026 from deadmanssnitch.com/plans.</p>
+    </div>
+  </div>
+
+  <!-- When to choose each -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+      <h2 class="text-xl font-bold mb-3">Choose Dead Man's Snitch if…</h2>
+      <ul class="text-gray-400 space-y-2 text-sm">
+        <li>You need the Field Agent (local daemon monitoring)</li>
+        <li>You're already on DMS and the basics cover your needs</li>
+        <li>You have a locked-down environment with no outbound HTTP from cron</li>
+      </ul>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+      <h2 class="text-xl font-bold mb-3">Choose DeadManCheck if…</h2>
+      <ul class="text-gray-400 space-y-2 text-sm">
+        <li>You want output assertions — "did the job actually do something?"</li>
+        <li>You need duration anomaly detection</li>
+        <li>You want open source / self-hosting as an option</li>
+        <li>You're monitoring 5+ jobs and want a better price</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Migration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Migration takes 10 minutes</h2>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck uses the same ping-URL pattern as DMS. Swap the URL in your scripts,
+      recreate your monitors, done. The
+      <a href="/docs/quickstart" class="text-brand-500 hover:underline">quickstart</a> has
+      copy-paste curl examples for every common setup.
+    </p>
+  </div>
+
+  <!-- Learn more internal links -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Learn more</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">How output assertions work</a></li>
+      <li><a href="/backup-monitoring" class="text-brand-500 hover:underline">Backup job monitoring</a></li>
+      <li><a href="/compare/vs-cronitor" class="text-brand-500 hover:underline">DeadManCheck vs Cronitor</a></li>
+      <li><a href="/compare/vs-healthchecks" class="text-brand-500 hover:underline">DeadManCheck vs Healthchecks.io</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">See full pricing</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100.</p>
+  </div>
+
+</section>
+{% endblock %}

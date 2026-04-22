@@ -37,7 +37,7 @@
           <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Only on DeadManCheck</span>
         </div>
         <h2 class="text-2xl font-bold mb-3">Your backup ran. It exported 0 rows. You found out three weeks later.</h2>
-        <p class="text-gray-400 mb-4">Every other monitoring tool only asks <em>did it run?</em> DeadManCheck also asks <em>did it actually do anything?</em> Send a JSON payload with your ping and define assertion rules. If the output doesn't match — you get alerted immediately, even though the job technically succeeded.</p>
+        <p class="text-gray-400 mb-4">Every other monitoring tool only asks <em>did it run?</em> DeadManCheck also asks <em>did it actually do anything?</em> Send a JSON payload with your ping and define assertion rules. If the output doesn't match — you get alerted immediately, even though the job technically succeeded. <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">How output assertions work →</a></p>
         <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm text-gray-300 overflow-x-auto">
           <div class="text-gray-500 mb-2"># Ping with output — assertions evaluated server-side</div>
           <div><span class="text-brand-500">curl</span> -X POST <span class="text-yellow-400">https://deadmancheck.io/ping/YOUR-ID</span> \</div>
@@ -67,6 +67,34 @@
       <div>
         <h3 class="font-semibold mb-1">vs Cronitor</h3>
         <p class="text-gray-400 text-sm">50 monitors costs $110/mo there. $12/mo here.</p>
+      </div>
+      <span class="text-gray-500 group-hover:text-white transition-colors ml-4">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- Use-case guides -->
+<section class="max-w-4xl mx-auto px-6 pb-16">
+  <p class="text-center text-gray-500 text-sm mb-6">What are you monitoring?</p>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="/cron-job-monitoring" class="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-5 transition-colors group flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold mb-1">Cron jobs</h3>
+        <p class="text-gray-400 text-sm">Scheduled tasks on any platform or language.</p>
+      </div>
+      <span class="text-gray-500 group-hover:text-white transition-colors ml-4">→</span>
+    </a>
+    <a href="/backup-monitoring" class="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-5 transition-colors group flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold mb-1">Backup jobs</h3>
+        <p class="text-gray-400 text-sm">Alert when backups go missing or export nothing.</p>
+      </div>
+      <span class="text-gray-500 group-hover:text-white transition-colors ml-4">→</span>
+    </a>
+    <a href="/etl-job-monitoring" class="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-5 transition-colors group flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold mb-1">ETL pipelines</h3>
+        <p class="text-gray-400 text-sm">Catch data pipelines that run but process nothing.</p>
       </div>
       <span class="text-gray-500 group-hover:text-white transition-colors ml-4">→</span>
     </a>

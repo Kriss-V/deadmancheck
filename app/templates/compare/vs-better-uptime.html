@@ -1,0 +1,180 @@
+{# slug: compare/vs-better-uptime | keyword: better uptime alternative | pillar: comparison #}
+{% extends "base.html" %}
+
+{% block title %}DeadManCheck vs Better Stack — Cron Monitoring Without the Platform Tax{% endblock %}
+{% block meta_description %}Better Stack (Better Uptime) charges $20 per 10 extra heartbeats. DeadManCheck gives you 100 cron monitors for $12/mo. Honest comparison of features, pricing, and when to use each.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">DeadManCheck vs Better Stack (Better Uptime)</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Better Stack is a broad observability platform. Cron monitoring is one small feature — and it
+    gets expensive fast. DeadManCheck is purpose-built for job monitoring and costs a fraction of the price.
+  </p>
+
+  <!-- Quick comparison table -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Feature comparison</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead>
+          <tr class="border-b border-gray-800">
+            <th class="py-3 pr-6 text-gray-300 font-semibold">Feature</th>
+            <th class="py-3 pr-6 text-brand-500 font-semibold">DeadManCheck</th>
+            <th class="py-3 text-gray-400 font-semibold">Better Stack</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-400">
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">100 cron monitors</td>
+            <td class="py-3 pr-6 text-green-400">$12/mo</td>
+            <td class="py-3 text-red-400">~$180/mo extra</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Free heartbeats</td>
+            <td class="py-3 pr-6">5 monitors</td>
+            <td class="py-3 text-green-400">10 heartbeats</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Output assertions</td>
+            <td class="py-3 pr-6 text-green-400">Yes</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Duration anomaly detection</td>
+            <td class="py-3 pr-6 text-green-400">Yes (rolling avg)</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">Open source / self-hostable</td>
+            <td class="py-3 pr-6 text-green-400">Yes</td>
+            <td class="py-3 text-red-400">No</td>
+          </tr>
+          <tr class="border-b border-gray-800/50">
+            <td class="py-3 pr-6">On-call scheduling</td>
+            <td class="py-3 pr-6 text-gray-500">No</td>
+            <td class="py-3 text-green-400">Yes ($34/mo+)</td>
+          </tr>
+          <tr>
+            <td class="py-3 pr-6">Status pages</td>
+            <td class="py-3 pr-6 text-gray-500">No</td>
+            <td class="py-3 text-green-400">Yes (paid)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pricing reality check -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">The pricing reality check</h2>
+    <p class="text-gray-400 mb-4">
+      Better Stack's free tier includes 10 heartbeats (cron monitors). After that:
+      <span class="text-white">$20/month per additional 10 heartbeats.</span>
+    </p>
+    <p class="text-gray-400 mb-4">
+      To reach 100 cron monitors: 10 free + 9 packs × $20 = <span class="text-red-400 font-semibold">$180/month</span> just for heartbeats.
+      Add the Responder plan for SMS alerts ($34/mo) and you're at $214/month.
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck: 100 monitors with Slack, Discord, Telegram, and email alerts for
+      <span class="text-green-400 font-semibold">$12/month</span>.
+    </p>
+    <p class="text-gray-500 text-sm mt-4">Better Stack pricing verified April 2026 from betterstack.com/pricing.</p>
+  </div>
+
+  <!-- Where Better Stack wins -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Where Better Stack wins</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Broader platform</span> — uptime monitoring, incident management, on-call scheduling, status pages, logs, and metrics. If you need all of this in one tool, Better Stack makes sense.</li>
+      <li><span class="text-white font-medium">Larger free heartbeat tier</span> — 10 vs our 5. For tiny setups, Better Stack's free tier goes further.</li>
+      <li><span class="text-white font-medium">AI post-mortem analysis</span> — automated incident summaries when things go wrong.</li>
+    </ul>
+  </div>
+
+  <!-- Where DMC wins -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Where DeadManCheck wins</h2>
+
+    <div class="space-y-6">
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Built for job monitoring, not bolted on</h3>
+        <p class="text-gray-400">
+          Better Stack's heartbeat monitoring is one feature in a large platform. DeadManCheck's
+          entire product is job monitoring. Every feature — output assertions, duration tracking,
+          rolling average anomaly detection — exists because of that focus.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Output assertions</h3>
+        <p class="text-gray-400 mb-3">
+          Better Stack heartbeats only check "did it ping?" DeadManCheck checks whether the job
+          actually did something. Include a count with your ping:
+        </p>
+        <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono">
+          curl -fsS "https://deadmancheck.io/ping/TOKEN<span class="text-brand-500">?count=842</span>" &gt; /dev/null
+        </div>
+        <p class="text-gray-400 mt-3">
+          Configure the assertion: alert if count is 0. Your ETL job that runs but processes nothing
+          gets caught. Better Stack lets it through.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-semibold mb-2">Price that scales with you</h3>
+        <p class="text-gray-400">
+          Better Stack's heartbeat pricing punishes growth. The more jobs you monitor, the more
+          the per-10-heartbeat cost compounds. DeadManCheck's flat-rate plans mean your monitoring
+          bill doesn't explode when you add monitors.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- When to choose each -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+      <h2 class="text-xl font-bold mb-3">Choose Better Stack if…</h2>
+      <ul class="text-gray-400 space-y-2 text-sm">
+        <li>You need uptime monitoring, on-call scheduling, and status pages in one platform</li>
+        <li>You monitor fewer than 10 cron jobs (free tier covers it)</li>
+        <li>Your team already uses Better Stack for incident management</li>
+      </ul>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
+      <h2 class="text-xl font-bold mb-3">Choose DeadManCheck if…</h2>
+      <ul class="text-gray-400 space-y-2 text-sm">
+        <li>You monitor 10+ cron jobs and don't want to pay per-10-heartbeats</li>
+        <li>You want output assertions — "did the job do anything?"</li>
+        <li>You want duration anomaly detection</li>
+        <li>You want open source / self-hosting as an option</li>
+        <li>Job monitoring is your primary need, not a full observability platform</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Internal links -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Learn more</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">How output assertions work</a></li>
+      <li><a href="/etl-job-monitoring" class="text-brand-500 hover:underline">ETL job monitoring</a></li>
+      <li><a href="/compare/vs-cronitor" class="text-brand-500 hover:underline">DeadManCheck vs Cronitor</a></li>
+      <li><a href="/compare/vs-healthchecks" class="text-brand-500 hover:underline">DeadManCheck vs Healthchecks.io</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">See full pricing</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100.</p>
+  </div>
+
+</section>
+{% endblock %}
