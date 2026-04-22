@@ -103,7 +103,7 @@ async def sitemap():
     all_urls = static_urls + compare_urls + seo_urls
 
     lines = ['<?xml version="1.0" encoding="UTF-8"?>',
-             '<urlset xmlns="http://www.sitemaps.org/schemas/0.1/">']
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9/">']
     for url in all_urls:
         lines.append(f"  <url><loc>{base}{url}</loc></url>")
     lines.append("</urlset>")
