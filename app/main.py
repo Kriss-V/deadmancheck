@@ -1,13 +1,14 @@
 import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.routers import auth, billing, monitors, ping, status_pages, uptime
+from app.routers import auth, billing, monitors, ping, seo_pages, status_pages, uptime
 from app.services.redis_client import close_redis, init_redis
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -35,11 +36,80 @@ app.include_router(monitors.router)
 app.include_router(billing.router)
 app.include_router(status_pages.router)
 app.include_router(uptime.router)
+app.include_router(seo_pages.router)  # must be last — catches dynamic slugs
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/robots.txt")
+async def robots():
+    content = """User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /monitors/
+Disallow: /api/
+Disallow: /status-pages/
+Disallow: /uptime/
+Disallow: /checkout
+Disallow: /portal
+Disallow: /webhook
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://deadmancheck.io/sitemap.xml"""
+    return Response(content, media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    base = "https://deadmancheck.io"
+    templates_dir = Path("app/templates")
+
+    # Pages with fixed URLs that don't map 1-to-1 to template filenames
+    static_urls = [
+        "/",
+        "/pricing",
+        "/docs/quickstart",
+        "/cron-job-monitoring",
+        "/monitor-long-running-cron-jobs",
+        "/cron-job-output-monitoring",
+        "/backup-monitoring",
+        "/etl-job-monitoring",
+    ]
+
+    # Auto-discover /compare/* pages
+    compare_urls = [
+        f"/compare/{p.stem}"
+        for p in sorted((templates_dir / "compare").glob("*.html"))
+    ]
+
+    # Auto-discover top-level SEO pages (excludes layout/app templates)
+    excluded = {
+        "base", "landing", "pricing",
+        "cron-job-monitoring", "monitor-long-running-cron-jobs",
+        "cron-job-output-monitoring", "backup-monitoring", "etl-job-monitoring",
+    }
+    seo_urls = [
+        f"/{p.stem}"
+        for p in sorted(templates_dir.glob("*.html"))
+        if p.stem not in excluded
+    ]
+
+    all_urls = static_urls + compare_urls + seo_urls
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/0.1/">']
+    for url in all_urls:
+        lines.append(f"  <url><loc>{base}{url}</loc></url>")
+    lines.append("</urlset>")
+
+    return Response("\n".join(lines), media_type="application/xml")
 
 
 @app.get("/", response_class=HTMLResponse)
