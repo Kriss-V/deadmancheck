@@ -189,7 +189,7 @@
   </form>
 </div>
 
-<script>
+<script nonce="{{ request.state.nonce }}">
 const EXISTING_ASSERTIONS = {{ monitor.assertions | tojson if monitor and monitor.assertions else '[]' }};
 
 function addAssertionRow(field='', op='>', value='') {

@@ -1,4 +1,5 @@
 import json
+import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -29,18 +30,20 @@ Instrumentator().instrument(app).expose(app)
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    nonce = secrets.token_urlsafe(16)
+    request.state.nonce = nonce
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; "
-        "font-src 'self'; "
-        "connect-src 'self'; "
-        "frame-ancestors 'none'"
+        f"default-src 'self'; "
+        f"script-src 'self' 'nonce-{nonce}'; "
+        f"style-src 'self' 'unsafe-inline'; "
+        f"img-src 'self' data:; "
+        f"font-src 'self'; "
+        f"connect-src 'self'; "
+        f"frame-ancestors 'none'"
     )
     return response
 

@@ -140,7 +140,7 @@
   {% endif %}
 </div>
 
-<script>
+<script nonce="{{ request.state.nonce }}">
 function copyPingUrl(btn, url) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(url).then(() => {

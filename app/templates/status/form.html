@@ -79,7 +79,7 @@
   </form>
 </div>
 
-<script>
+<script nonce="{{ request.state.nonce }}">
 document.getElementById('pageForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;

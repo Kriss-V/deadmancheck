@@ -63,7 +63,7 @@
   {% endif %}
 </div>
 
-<script>
+<script nonce="{{ request.state.nonce }}">
 function copyUrl(url) {
   navigator.clipboard.writeText(url);
   alert('URL copied!');
