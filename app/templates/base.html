@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}DeadManCheck — Cron Job Monitoring{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Know the moment your scheduled jobs fail or run too long. Open source cron job monitoring with duration anomaly detection.{% endblock %}">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon_io/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
@@ -27,7 +28,7 @@
   {% block nav %}
   <nav class="border-b border-gray-800 px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <a href="/" class="text-brand-500 font-bold text-xl tracking-tight">DeadManCheck</a>
+      <a href="/"><img src="/static/images/deadmancheck_logo_v6.svg" alt="DeadManCheck" class="h-20 w-auto"></a>
       <div class="flex items-center gap-6 text-sm text-gray-400">
         <a href="/pricing" class="hover:text-white transition-colors">Pricing</a>
         <a href="/docs/quickstart" class="hover:text-white transition-colors">Docs</a>
@@ -77,7 +78,8 @@
       </div>
     </div>
     <div class="max-w-4xl mx-auto border-t border-gray-800 pt-6 text-center">
-      <p>DeadManCheck.io — Open source cron job monitoring</p>
+      <a href="/"><img src="/static/images/deadmancheck_logo_v6.svg" alt="DeadManCheck" class="h-10 w-auto mx-auto mb-2"></a>
+      <p>Open source cron job monitoring</p>
     </div>
   </footer>
   {% endblock %}

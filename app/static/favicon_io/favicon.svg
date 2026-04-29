@@ -1,0 +1,23 @@
+<svg width="32" height="32" viewBox="256 26 168 168" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#042C53"/>
+    </linearGradient>
+    <clipPath id="cc"><circle cx="340" cy="110" r="72"/></clipPath>
+  </defs>
+
+  <circle cx="340" cy="110" r="84" fill="none" stroke="#22c55e" stroke-width="2.5" opacity="0.85"/>
+  <circle cx="340" cy="110" r="72" fill="url(#bg)"/>
+
+  <g clip-path="url(#cc)">
+    <polyline
+      points="268,112 292,112 301,95 309,129 317,85 326,139 334,104 341,112 362,112 371,98 379,124 387,112 412,112"
+      fill="none" stroke="white" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+  </g>
+
+  <polyline points="317,110 331,126 363,92"
+    fill="none" stroke="white" stroke-width="7"
+    stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
