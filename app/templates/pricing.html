@@ -104,10 +104,11 @@
         {{ plan.cta }}
       </a>
       {% else %}
-      <button onclick="startCheckout('{{ plan.name | lower }}')"
-        class="w-full text-center {% if plan.highlight %}bg-brand-600 hover:bg-brand-700{% else %}border border-gray-700 hover:border-gray-500{% endif %} text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm cursor-pointer">
-        {{ plan.cta }}
-      </button>
+      <form method="post" action="/billing/checkout?plan={{ plan.name | lower }}">
+        <button type="submit" class="w-full text-center {% if plan.highlight %}bg-brand-600 hover:bg-brand-700{% else %}border border-gray-700 hover:border-gray-500{% endif %} text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm cursor-pointer">
+          {{ plan.cta }}
+        </button>
+      </form>
       {% endif %}
     </div>
     {% endfor %}
@@ -129,5 +130,4 @@
   </div>
 </section>
 
-<script src="/static/js/checkout.js"></script>
 {% endblock %}
