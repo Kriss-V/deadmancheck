@@ -37,6 +37,8 @@ async def security_headers(request: Request, call_next):
     response = await call_next(request)
     if "csrf_token" not in request.cookies:
         response.set_cookie("csrf_token", csrf_token, httponly=True, samesite="strict", secure=True)
+    if "text/html" in response.headers.get("content-type", ""):
+        response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
