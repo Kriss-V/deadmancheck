@@ -129,13 +129,5 @@
   </div>
 </section>
 
-<script nonce="{{ request.state.nonce }}">
-function startCheckout(plan) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/billing/checkout?plan=' + plan;
-  document.body.appendChild(form);
-  form.submit();
-}
-</script>
+<script src="/static/js/checkout.js"></script>
 {% endblock %}
