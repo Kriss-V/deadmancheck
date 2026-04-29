@@ -53,7 +53,7 @@ async def security_headers(request: Request, call_next):
         f"connect-src 'self'; "
         f"object-src 'none'; "
         f"base-uri 'self'; "
-        f"form-action 'self'; "
+        f"form-action 'self' https://deadmancheck.io; "
         f"frame-ancestors 'none'"
     )
     return response
