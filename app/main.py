@@ -36,7 +36,7 @@ async def security_headers(request: Request, call_next):
     request.state.csrf_token = csrf_token
     response = await call_next(request)
     if "csrf_token" not in request.cookies:
-        response.set_cookie("csrf_token", csrf_token, samesite="strict", secure=True)
+        response.set_cookie("csrf_token", csrf_token, httponly=True, samesite="strict", secure=True)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -45,12 +45,13 @@ async def security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = (
         f"default-src 'self'; "
         f"script-src 'self' 'nonce-{nonce}'; "
-        f"style-src 'self' 'unsafe-inline'; "
+        f"style-src 'self'; "
         f"img-src 'self' data:; "
         f"font-src 'self'; "
         f"connect-src 'self'; "
         f"object-src 'none'; "
         f"base-uri 'self'; "
+        f"form-action 'self'; "
         f"frame-ancestors 'none'"
     )
     return response
