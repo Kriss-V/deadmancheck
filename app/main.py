@@ -32,7 +32,11 @@ Instrumentator().instrument(app).expose(app)
 async def security_headers(request: Request, call_next):
     nonce = secrets.token_urlsafe(16)
     request.state.nonce = nonce
+    csrf_token = request.cookies.get("csrf_token") or secrets.token_urlsafe(16)
+    request.state.csrf_token = csrf_token
     response = await call_next(request)
+    if "csrf_token" not in request.cookies:
+        response.set_cookie("csrf_token", csrf_token, samesite="strict", secure=True)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
@@ -45,6 +49,8 @@ async def security_headers(request: Request, call_next):
         f"img-src 'self' data:; "
         f"font-src 'self'; "
         f"connect-src 'self'; "
+        f"object-src 'none'; "
+        f"base-uri 'self'; "
         f"frame-ancestors 'none'"
     )
     return response

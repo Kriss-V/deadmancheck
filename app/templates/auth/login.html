@@ -17,6 +17,7 @@
     {% endif %}
 
     <form id="loginForm" class="space-y-4" method="post" action="/login" enctype="application/x-www-form-urlencoded">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}">
       <div>
         <label class="block text-sm text-gray-300 mb-1.5">Email</label>
         <input type="email" name="email" required autocomplete="email"

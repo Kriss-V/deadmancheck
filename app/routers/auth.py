@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import resend
 from fastapi import APIRouter, Depends, Form, Request, status
+from app.dependencies import verify_csrf
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -32,6 +33,7 @@ async def register(
     email: str = Form(...),
     password: str = Form(...),
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_csrf),
 ):
     result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none():
@@ -71,7 +73,7 @@ curl {settings.app_url}/ping/YOUR-MONITOR-UUID</pre>
 
     token = create_access_token(str(user.id))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
-    response.set_cookie("access_token", token, httponly=True, samesite="lax", max_age=604800)
+    response.set_cookie("access_token", token, httponly=True, samesite="lax", secure=True, max_age=604800)
     return response
 
 
@@ -86,6 +88,7 @@ async def login(
     email: str = Form(...),
     password: str = Form(...),
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_csrf),
 ):
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
@@ -96,7 +99,7 @@ async def login(
 
     token = create_access_token(str(user.id))
     response = RedirectResponse(url="/dashboard", status_code=302)
-    response.set_cookie("access_token", token, httponly=True, samesite="lax", max_age=604800)
+    response.set_cookie("access_token", token, httponly=True, samesite="lax", secure=True, max_age=604800)
     return response
 
 
@@ -117,6 +120,7 @@ async def forgot_password(
     request: Request,
     email: str = Form(...),
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_csrf),
 ):
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
@@ -164,6 +168,7 @@ async def reset_password(
     token: str = Form(...),
     password: str = Form(...),
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(verify_csrf),
 ):
     result = await db.execute(select(User).where(User.reset_token == token))
     user = result.scalar_one_or_none()
