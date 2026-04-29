@@ -21,6 +21,11 @@
       "n": 3,
       "title": "(Optional) Track duration",
       "body": "Enable duration monitoring in the monitor settings, then use the two-call pattern. We track how long your job takes and alert you if it runs unexpectedly slow."
+    },
+    {
+      "n": 4,
+      "title": "(Optional) Assert output",
+      "body": "Pass a <code class=\"text-brand-500 bg-gray-900 px-1 rounded\">count</code> parameter with your ping. DeadManCheck will alert you if your job runs but processes zero rows — catching silent failures that duration monitoring misses entirely."
     }
   ] %}
   <div class="flex gap-6 mb-12">
@@ -37,19 +42,19 @@
   {% for example in [
     {
       "lang": "Bash / cron",
-      "code": "# Simple heartbeat\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# With duration tracking\ncurl -s https://deadmancheck.io/ping/YOUR-ID/start\n./your_job.sh\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# Report failure\ncurl -s https://deadmancheck.io/ping/YOUR-ID/fail?exit_code=1"
+      "code": "# Simple heartbeat\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# With duration tracking\ncurl -s https://deadmancheck.io/ping/YOUR-ID/start\n./your_job.sh\ncurl -s https://deadmancheck.io/ping/YOUR-ID\n\n# With output assertions — alert if count is 0\nROWS=$(./your_job.sh)\ncurl -s \"https://deadmancheck.io/ping/YOUR-ID?count=$ROWS\"\n\n# Report failure\ncurl -s https://deadmancheck.io/ping/YOUR-ID/fail?exit_code=1"
     },
     {
       "lang": "Python",
-      "code": "import httpx\n\nPING_URL = 'https://deadmancheck.io/ping/YOUR-ID'\n\n# At start\nhttpx.get(f'{PING_URL}/start')\n\n# ... your job ...\n\n# On success\nhttpx.get(PING_URL)\n\n# On failure\nhttpx.get(f'{PING_URL}/fail', params={'exit_code': 1})"
+      "code": "import httpx\n\nPING_URL = 'https://deadmancheck.io/ping/YOUR-ID'\n\n# At start\nhttpx.get(f'{PING_URL}/start')\n\n# ... your job ...\nrows_processed = run_etl()\n\n# On success — pass row count for output assertions\nhttpx.get(PING_URL, params={'count': rows_processed})\n\n# On failure\nhttpx.get(f'{PING_URL}/fail', params={'exit_code': 1})"
     },
     {
       "lang": "GitHub Actions",
-      "code": "- name: Run job\n  run: ./your_job.sh\n\n- name: Ping DeadManCheck\n  if: success()\n  run: curl -s https://deadmancheck.io/ping/YOUR-ID\n\n- name: Report failure\n  if: failure()\n  run: curl -s https://deadmancheck.io/ping/YOUR-ID/fail"
+      "code": "- name: Run job\n  id: job\n  run: |\n    ./your_job.sh\n    echo \"rows=$(cat /tmp/row_count.txt)\" >> $GITHUB_OUTPUT\n\n- name: Ping DeadManCheck\n  if: success()\n  run: curl -s \"https://deadmancheck.io/ping/YOUR-ID?count=${{ steps.job.outputs.rows }}\"\n\n- name: Report failure\n  if: failure()\n  run: curl -s https://deadmancheck.io/ping/YOUR-ID/fail"
     },
     {
       "lang": "Node.js",
-      "code": "const PING_URL = 'https://deadmancheck.io/ping/YOUR-ID';\n\nawait fetch(`${PING_URL}/start`);\n\ntry {\n  await yourJob();\n  await fetch(PING_URL);\n} catch (err) {\n  await fetch(`${PING_URL}/fail?exit_code=1`);\n  throw err;\n}"
+      "code": "const PING_URL = 'https://deadmancheck.io/ping/YOUR-ID';\n\nawait fetch(`${PING_URL}/start`);\n\ntry {\n  const rowsProcessed = await yourJob();\n  // Pass count — alerts if job ran but processed nothing\n  await fetch(`${PING_URL}?count=${rowsProcessed}`);\n} catch (err) {\n  await fetch(`${PING_URL}/fail?exit_code=1`);\n  throw err;\n}"
     }
   ] %}
   <div class="mb-8">
