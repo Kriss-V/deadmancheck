@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     resend_api_key: str = ""
     alert_from_email: str = "alerts@deadmancheck.io"
+    admin_email: str = ""
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""

@@ -71,6 +71,17 @@ curl {settings.app_url}/ping/YOUR-MONITOR-UUID</pre>
         except Exception as e:
             logger.error(f"[auth] failed to send welcome email: {e}")
 
+    if settings.resend_api_key and settings.admin_email:
+        try:
+            resend.Emails.send({
+                "from": settings.alert_from_email,
+                "to": [settings.admin_email],
+                "subject": f"New signup: {email}",
+                "html": f"<p>New user signed up: <strong>{email}</strong></p><p>{settings.app_url}/admin</p>",
+            })
+        except Exception as e:
+            logger.error(f"[auth] failed to send signup notification: {e}")
+
     token = create_access_token(str(user.id))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_302_FOUND)
     response.set_cookie("access_token", token, httponly=True, samesite="lax", secure=True, max_age=604800)
