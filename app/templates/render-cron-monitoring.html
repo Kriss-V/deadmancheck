@@ -1,0 +1,134 @@
+{# slug: render-cron-monitoring | keyword: render cron job monitoring | pillar: platform #}
+{% extends "base.html" %}
+
+{% block title %}Render Cron Job Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor Render cron jobs with external dead man's switch alerting. Render provides no failure notifications for cron jobs — DeadManCheck fills that gap in 2 minutes.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Cron Job Monitoring for Render</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Render runs your cron jobs on schedule and logs the output. It does not alert you when a job
+    fails, stops running, or succeeds while doing nothing. DeadManCheck does — in two minutes of setup.
+  </p>
+
+  <!-- How Render cron works -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">How Render cron jobs work</h2>
+    <p class="text-gray-400 mb-4">
+      Render cron jobs run a command from your Git repo (or a Docker image) on a cron expression
+      schedule. Render guarantees at most one active run at a time — if a run is still active when
+      the next trigger fires, Render delays the next run until the current one finishes. Active runs
+      are killed after 12 hours.
+    </p>
+    <p class="text-gray-400">
+      What Render doesn't provide: failure notifications. If your cron job exits non-zero, crashes,
+      or processes nothing, the failure appears in the Render dashboard logs — but no one gets paged.
+    </p>
+  </div>
+
+  <!-- What can go wrong -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What goes wrong on Render that Render won't tell you about</h2>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Job exits non-zero</span> — Render logs it, doesn't alert. You find out when a customer notices missing data.</li>
+      <li><span class="text-white font-medium">Job exits 0 but exports nothing</span> — database connection string rotated, API key expired. Script runs clean, processes nothing.</li>
+      <li><span class="text-white font-medium">Deploy breaks the job</span> — a dependency change or bad env var causes the service to fail on startup. Job never runs.</li>
+      <li><span class="text-white font-medium">12-hour timeout silently kills long-running jobs</span> — Render kills the run at 12 hours with no alert. Job appears to have been running; never completed.</li>
+      <li><span class="text-white font-medium">Job takes 3× longer than usual</span> — upstream service is slow, data volume grew. No duration alerting from Render.</li>
+    </ul>
+  </div>
+
+  <!-- Integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Integrating DeadManCheck with Render</h2>
+    <p class="text-gray-400 mb-4">
+      Create a monitor at <a href="/register" class="text-brand-500 hover:underline">deadmancheck.io</a>,
+      set the interval to match your Render cron schedule, then add the ping to your service.
+    </p>
+
+    <h3 class="text-lg font-semibold mb-3">Python service on Render</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      import requests, os, sys<br>
+      <br>
+      TOKEN = os.environ["DEADMANCHECK_TOKEN"]<br>
+      BASE = f"https://deadmancheck.io/ping/{TOKEN}"<br>
+      <br>
+      def main():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/start", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count = run_job()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># Pass count for output assertion</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(BASE, params={"count": count}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/fail", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sys.exit(1)<br>
+      <br>
+      if __name__ == "__main__":<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;main()
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Shell/bash service on Render</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      #!/bin/bash<br>
+      set -euo pipefail<br>
+      <br>
+      BASE="https://deadmancheck.io/ping/${DEADMANCHECK_TOKEN}"<br>
+      <br>
+      curl -fsS "${BASE}/start" &gt; /dev/null<br>
+      trap 'curl -fsS "${BASE}/fail" &gt; /dev/null' ERR<br>
+      <br>
+      /app/run-job.sh<br>
+      <br>
+      curl -fsS "${BASE}" &gt; /dev/null
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Adding the environment variable on Render</h3>
+    <p class="text-gray-400 mb-3">
+      Render Dashboard → your cron job service → Environment → Add Environment Variable.
+      Set <code class="bg-gray-800 px-1 rounded text-sm">DEADMANCHECK_TOKEN</code> to the token
+      from your DeadManCheck monitor.
+    </p>
+    <p class="text-gray-400 text-sm">
+      Tip: use a Render Environment Group if you want to share the token across multiple services.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions for Render cron jobs</h2>
+    <p class="text-gray-400 mb-4">
+      Render's monitoring is limited to exit codes. It has no way to know whether your job
+      actually processed any data. DeadManCheck's <span class="text-brand-500">output assertion</span>
+      fills this gap: configure a minimum count, and alert if your job reports <code class="bg-gray-800 px-1 rounded text-sm">count=0</code>.
+    </p>
+    <p class="text-gray-400">
+      Your nightly backup that exports 0 rows triggers an alert — even though Render shows the
+      job as completed successfully. Learn more about
+      <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">output assertions →</a>
+    </p>
+  </div>
+
+  <!-- Related guides -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/backup-monitoring" class="text-brand-500 hover:underline">Backup job monitoring</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/railway-cron-monitoring" class="text-brand-500 hover:underline">Railway cron job monitoring</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}

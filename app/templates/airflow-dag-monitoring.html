@@ -1,0 +1,173 @@
+{# slug: airflow-dag-monitoring | keyword: airflow dag monitoring | pillar: use-case #}
+{% extends "base.html" %}
+
+{% block title %}Apache Airflow DAG Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor Airflow DAGs with dead man's switch alerting. Know when a DAG silently skips, produces no output, or stops running entirely — in two minutes of setup.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Airflow DAG Monitoring with DeadManCheck</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Airflow tells you when a DAG fails. It doesn't tell you when a DAG runs successfully but processes
+    nothing — zero rows exported, zero records synced, zero files moved. DeadManCheck does.
+  </p>
+
+  <!-- The problem Airflow doesn't solve -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What Airflow's built-in alerting misses</h2>
+    <p class="text-gray-400 mb-4">
+      Airflow's <code class="bg-gray-800 px-1 rounded text-sm">on_failure_callback</code> fires when
+      a task or DAG run fails. That's necessary, but it's not sufficient. The failures that hurt most
+      aren't crashes — they're silent successes: DAGs that complete with exit code 0 while doing
+      nothing useful.
+    </p>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Database query returns 0 rows</span> — upstream data pipeline broke. Your export DAG runs, exports nothing, marks itself green.</li>
+      <li><span class="text-white font-medium">API token expired</span> — your sync DAG catches the exception, logs it, exits cleanly. All tasks: success.</li>
+      <li><span class="text-white font-medium">DAG paused by accident</span> — someone hit the pause button in the UI. No alerts fire. DAG silently stops running.</li>
+      <li><span class="text-white font-medium">Schedule drift</span> — DAG starts late every day, 5 minutes, then 20, then an hour. Airflow doesn't alert on duration anomalies.</li>
+    </ul>
+  </div>
+
+  <!-- Integration: callback approach -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Option 1: Ping via DAG-level callback</h2>
+    <p class="text-gray-400 mb-4">
+      The cleanest approach for DAGs that should complete successfully: use
+      <code class="bg-gray-800 px-1 rounded text-sm">on_success_callback</code> at the DAG level.
+      If the DAG doesn't succeed on schedule, DeadManCheck alerts you.
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      <span class="text-gray-500"># airflow/dags/my_export_dag.py</span><br>
+      import requests<br>
+      from airflow.sdk import DAG<br>
+      from airflow.providers.standard.operators.python import PythonOperator<br>
+      from datetime import datetime, timedelta<br>
+      <br>
+      DEADMANCHECK_TOKEN = "your-monitor-token"<br>
+      <br>
+      def ping_deadmancheck(context):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># Called on DAG success — pass row count via ?count= for output assertion</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;rows = context["ti"].xcom_pull(task_ids="export_data", key="rows_exported")<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;url = f"https://deadmancheck.io/ping/{DEADMANCHECK_TOKEN}"<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(url, params={"count": rows or 0}, timeout=5)<br>
+      <br>
+      def ping_fail(context):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f"https://deadmancheck.io/ping/{DEADMANCHECK_TOKEN}/fail",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout=5<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;)<br>
+      <br>
+      with DAG(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dag_id="daily_export",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;schedule="0 2 * * *",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;start_date=datetime(2026, 1, 1),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;on_success_callback=ping_deadmancheck,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;on_failure_callback=ping_fail,<br>
+      ) as dag:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;...<span class="text-gray-500">  # your tasks here</span>
+    </div>
+    <p class="text-gray-400 text-sm">
+      Set the monitor interval to <code class="bg-gray-800 px-1 rounded">25 hours</code> (slightly longer
+      than your schedule) so DeadManCheck alerts if the DAG doesn't complete within the expected window.
+    </p>
+  </div>
+
+  <!-- Integration: final task approach -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Option 2: Ping as a final task</h2>
+    <p class="text-gray-400 mb-4">
+      If you want the ping to run only after all upstream work succeeds — and you want it visible in
+      the Airflow task graph — add it as a final <code class="bg-gray-800 px-1 rounded text-sm">PythonOperator</code>.
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      from airflow.providers.standard.operators.python import PythonOperator<br>
+      from airflow.providers.http.operators.http import HttpOperator<br>
+      <br>
+      <span class="text-gray-500"># Or use HttpOperator for a dependency-free approach:</span><br>
+      notify_success = HttpOperator(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;task_id="notify_deadmancheck",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;http_conn_id="deadmancheck_conn",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;endpoint=f"/ping/{DEADMANCHECK_TOKEN}",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;method="GET",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dag=dag,<br>
+      )<br>
+      <br>
+      <span class="text-gray-500"># Chain after your last real task:</span><br>
+      export_data >> validate_output >> notify_success
+    </div>
+    <p class="text-gray-400 text-sm">
+      Use Airflow's Connections UI (Admin → Connections) to store the DeadManCheck host
+      as <code class="bg-gray-800 px-1 rounded">deadmancheck_conn</code>: host = <code class="bg-gray-800 px-1 rounded">deadmancheck.io</code>, schema = <code class="bg-gray-800 px-1 rounded">https</code>.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions: catch DAGs that do nothing</h2>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck's <span class="text-brand-500">output assertion</span> feature is the check Airflow
+      itself can't provide. Pass a count with your ping and configure an alert threshold:
+    </p>
+    <ul class="text-gray-400 space-y-2 mb-4">
+      <li>Export DAG exported 0 rows → alert (even though Airflow shows "success")</li>
+      <li>Sync DAG synced 0 records → alert</li>
+      <li>Report generation produced 0 files → alert</li>
+    </ul>
+    <p class="text-gray-400">
+      No other cron monitoring tool checks this. Cronitor, Healthchecks.io, Better Stack — all of them
+      just verify the ping arrived. Only DeadManCheck lets you assert on the work done.
+      See <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">how output assertions work →</a>
+    </p>
+  </div>
+
+  <!-- Duration monitoring -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Duration monitoring for slow DAGs</h2>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck tracks how long each DAG run takes and alerts when a run takes significantly
+      longer than the rolling average. Send a start ping before your DAG begins:
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4">
+      def ping_start(context):<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f"https://deadmancheck.io/ping/{DEADMANCHECK_TOKEN}/start",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout=5<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;)<br>
+      <br>
+      with DAG(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;...<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;on_execute_callback=ping_start,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;on_success_callback=ping_deadmancheck,<br>
+      ) as dag:
+    </div>
+    <p class="text-gray-400 text-sm">
+      Once you have 5+ runs of history, DeadManCheck builds a rolling average and alerts when
+      a DAG takes 2× longer than usual — a leading indicator of data volume spikes or upstream slowdowns.
+      Learn more about <a href="/monitor-long-running-cron-jobs" class="text-brand-500 hover:underline">duration monitoring →</a>
+    </p>
+  </div>
+
+  <!-- Related guides -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/etl-job-monitoring" class="text-brand-500 hover:underline">ETL job monitoring — patterns for data pipeline jobs</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/monitor-long-running-cron-jobs" class="text-brand-500 hover:underline">Duration monitoring with rolling average anomaly detection</a></li>
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}

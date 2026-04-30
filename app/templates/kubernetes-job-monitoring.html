@@ -1,0 +1,170 @@
+{# slug: kubernetes-job-monitoring | keyword: kubernetes cronjob monitoring | pillar: use-case #}
+{% extends "base.html" %}
+
+{% block title %}Kubernetes CronJob Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor Kubernetes CronJobs with external dead man's switch alerting. Catch missed schedules, silent exits, and the 100-missed-schedule bug before your data pipeline goes dark.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Kubernetes CronJob Monitoring</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Kubernetes CronJobs fail silently more often than you'd expect. Missed schedules don't page anyone.
+    Exit code 0 doesn't mean the job did anything. DeadManCheck gives you an independent check that
+    runs outside your cluster.
+  </p>
+
+  <!-- Why k8s cronjobs are unreliable -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Why Kubernetes CronJobs fail silently</h2>
+    <p class="text-gray-400 mb-4">
+      Kubernetes was not designed with cron job reliability as a first-class concern. Several
+      well-documented behaviors combine to make silent failures the norm, not the exception:
+    </p>
+    <ul class="text-gray-400 space-y-4">
+      <li>
+        <span class="text-white font-medium">The 100 missed-schedule limit</span> — if a CronJob misses
+        more than 100 scheduled runs within the <code class="bg-gray-800 px-1 rounded text-sm">startingDeadlineSeconds</code>
+        window, the controller logs an error and permanently stops scheduling. No alert fires.
+        This is a real production failure mode that has caused multi-week data gaps.
+      </li>
+      <li>
+        <span class="text-white font-medium">Job history purged, logs gone</span> — by default,
+        <code class="bg-gray-800 px-1 rounded text-sm">successfulJobsHistoryLimit</code> is 3 and
+        <code class="bg-gray-800 px-1 rounded text-sm">failedJobsHistoryLimit</code> is 1. Older
+        job pods are deleted, taking their logs with them. When you notice something's wrong, evidence is already gone.
+      </li>
+      <li>
+        <span class="text-white font-medium">Exit code 0 is not success</span> — your container script
+        can exit 0 after connecting to a stale database replica, processing an empty queue, or silently
+        swallowing an exception. Kubernetes marks the Job successful.
+      </li>
+      <li>
+        <span class="text-white font-medium">Schedule slip under load</span> — if the cluster is resource-constrained,
+        the CronJob controller may delay job creation. No duration alerting. No anomaly detection.
+      </li>
+    </ul>
+  </div>
+
+  <!-- Integration: add ping to k8s job spec -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Adding a DeadManCheck ping to a CronJob</h2>
+    <p class="text-gray-400 mb-4">
+      The simplest approach: wrap your job command to send a start ping, run the job, then send a
+      success or failure ping. No sidecar needed — just modify your entrypoint script or use a
+      <code class="bg-gray-800 px-1 rounded text-sm">command</code> wrapper in the job spec.
+    </p>
+
+    <h3 class="text-lg font-semibold mb-3">Shell wrapper (works with any container)</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      #!/bin/bash<br>
+      set -euo pipefail<br>
+      <br>
+      TOKEN="${DEADMANCHECK_TOKEN}"<br>
+      BASE="https://deadmancheck.io/ping/${TOKEN}"<br>
+      <br>
+      <span class="text-gray-500"># Signal start</span><br>
+      curl -fsS "${BASE}/start" &gt; /dev/null<br>
+      <br>
+      <span class="text-gray-500"># Signal failure on any error</span><br>
+      trap 'curl -fsS "${BASE}/fail" &gt; /dev/null' ERR<br>
+      <br>
+      <span class="text-gray-500"># Run your actual job</span><br>
+      ROWS=$(/app/run-export.sh)<br>
+      <br>
+      <span class="text-gray-500"># Signal success + row count for output assertion</span><br>
+      curl -fsS "${BASE}?count=${ROWS}" &gt; /dev/null
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Python job with output assertion</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      import requests, os, sys<br>
+      <br>
+      TOKEN = os.environ["DEADMANCHECK_TOKEN"]<br>
+      BASE = f"https://deadmancheck.io/ping/{TOKEN}"<br>
+      <br>
+      def main():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/start", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;records_processed = run_job()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(BASE, params={"count": records_processed}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception as e:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/fail", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sys.exit(1)<br>
+      <br>
+      if __name__ == "__main__":<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;main()
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Kubernetes CronJob spec with environment variable</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      apiVersion: batch/v1<br>
+      kind: CronJob<br>
+      metadata:<br>
+      &nbsp;&nbsp;name: daily-export<br>
+      spec:<br>
+      &nbsp;&nbsp;schedule: "0 2 * * *"<br>
+      &nbsp;&nbsp;successfulJobsHistoryLimit: 5<br>
+      &nbsp;&nbsp;failedJobsHistoryLimit: 3<br>
+      &nbsp;&nbsp;jobTemplate:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;spec:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spec:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;containers:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: exporter<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image: your-image:latest<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;env:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- name: DEADMANCHECK_TOKEN<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;valueFrom:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;secretKeyRef:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: deadmancheck-secret<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;key: token<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;restartPolicy: OnFailure
+    </div>
+    <p class="text-gray-400 text-sm">
+      Store the token in a Kubernetes Secret:
+      <code class="bg-gray-800 px-1 rounded">kubectl create secret generic deadmancheck-secret --from-literal=token=your-token</code>
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions: beyond exit codes</h2>
+    <p class="text-gray-400 mb-4">
+      Kubernetes only knows whether your container exited 0 or non-zero. It has no concept of
+      "this job completed but processed nothing."
+    </p>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck's <span class="text-brand-500">output assertions</span> close this gap. Pass a
+      <code class="bg-gray-800 px-1 rounded text-sm">?count=</code> parameter with your ping and
+      set a minimum threshold. If your nightly export sends <code class="bg-gray-800 px-1 rounded text-sm">count=0</code>,
+      you get paged — even though Kubernetes reports the Job as successful.
+    </p>
+    <p class="text-gray-400">
+      No other Kubernetes cron monitoring tool does this. See
+      <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">how output assertions work →</a>
+    </p>
+  </div>
+
+  <!-- Related guides -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/etl-job-monitoring" class="text-brand-500 hover:underline">ETL job monitoring — patterns for data pipeline jobs</a></li>
+      <li><a href="/monitor-long-running-cron-jobs" class="text-brand-500 hover:underline">Duration monitoring with rolling average anomaly detection</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}

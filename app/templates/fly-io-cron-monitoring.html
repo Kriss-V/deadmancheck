@@ -1,0 +1,147 @@
+{# slug: fly-io-cron-monitoring | keyword: fly.io cron monitoring | pillar: platform #}
+{% extends "base.html" %}
+
+{% block title %}Fly.io Cron Job Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor cron jobs on Fly.io with external dead man's switch alerting. Whether you use Supercronic, Fly Machines, or Cron Manager, DeadManCheck tells you when jobs fail silently.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Cron Job Monitoring for Fly.io</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Fly.io has no native cron. You choose how to schedule jobs — Supercronic in a process, Cron Manager,
+    or Fly Machines on a timer. None of these options alert you when a job fails or silently does nothing.
+    DeadManCheck does.
+  </p>
+
+  <!-- How cron works on Fly.io -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">How cron works on Fly.io</h2>
+    <p class="text-gray-400 mb-4">
+      Fly.io offers three main approaches for scheduled jobs, each with different tradeoffs:
+    </p>
+    <ul class="text-gray-400 space-y-4">
+      <li>
+        <span class="text-white font-medium">Supercronic (most common)</span> — a container-native
+        cron replacement. You add a crontab file, install Supercronic in your Dockerfile, and run it
+        as a separate <code class="bg-gray-800 px-1 rounded text-sm">cron</code> process group in
+        <code class="bg-gray-800 px-1 rounded text-sm">fly.toml</code>. Simple setup, but no
+        built-in alerting when jobs fail.
+      </li>
+      <li>
+        <span class="text-white font-medium">Cron Manager</span> — Fly's batteries-included solution
+        for isolated, auditable job runs. Spins up a temporary Machine per job. Provides isolation and
+        audit logs, but still no external alerting if a job exits non-zero or does nothing.
+      </li>
+      <li>
+        <span class="text-white font-medium">Fly Machine timers</span> — schedule a Machine to start
+        hourly, daily, or weekly. Coarse-grained control; no failure notifications.
+      </li>
+    </ul>
+    <p class="text-gray-400 mt-4">
+      In all three cases, the gap is the same: Fly.io logs the run, but doesn't page you when
+      something goes wrong.
+    </p>
+  </div>
+
+  <!-- Supercronic integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Adding DeadManCheck to a Supercronic setup</h2>
+    <p class="text-gray-400 mb-4">
+      If you're using Supercronic, wrap your cron commands to send start/success/fail pings.
+      Your crontab entry becomes a call to a wrapper script:
+    </p>
+
+    <h3 class="text-lg font-semibold mb-3">crontab (at your project root)</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6">
+      0 2 * * * /app/scripts/run-monitored.sh /app/run-export.sh
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">/app/scripts/run-monitored.sh</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      #!/bin/bash<br>
+      set -euo pipefail<br>
+      <br>
+      TOKEN="${DEADMANCHECK_TOKEN}"<br>
+      BASE="https://deadmancheck.io/ping/${TOKEN}"<br>
+      <br>
+      curl -fsS "${BASE}/start" &gt; /dev/null<br>
+      trap 'curl -fsS "${BASE}/fail" &gt; /dev/null' ERR<br>
+      <br>
+      <span class="text-gray-500"># Run the actual job, capture output count if applicable</span><br>
+      "$@"<br>
+      <br>
+      curl -fsS "${BASE}" &gt; /dev/null
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Python job with output assertion</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-6 overflow-x-auto">
+      import requests, os, sys<br>
+      <br>
+      TOKEN = os.environ["DEADMANCHECK_TOKEN"]<br>
+      BASE = f"https://deadmancheck.io/ping/{TOKEN}"<br>
+      <br>
+      def main():<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/start", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;records = run_job()<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># count=records triggers output assertion alert if 0</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(BASE, params={"count": records}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/fail", timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sys.exit(1)<br>
+      <br>
+      if __name__ == "__main__":<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;main()
+    </div>
+
+    <h3 class="text-lg font-semibold mb-3">Setting the secret on Fly.io</h3>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4">
+      fly secrets set DEADMANCHECK_TOKEN=your-monitor-token
+    </div>
+    <p class="text-gray-400 text-sm">
+      Fly secrets are automatically injected as environment variables into all Machines in the app,
+      including your <code class="bg-gray-800 px-1 rounded">cron</code> process group.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions for Fly.io jobs</h2>
+    <p class="text-gray-400 mb-4">
+      Whether you use Supercronic, Cron Manager, or a Machine timer, Fly.io has no concept of
+      "this job ran but processed nothing." A script that connects to a database, finds no rows,
+      and exits 0 looks identical to a successful run.
+    </p>
+    <p class="text-gray-400">
+      DeadManCheck's <span class="text-brand-500">output assertions</span> let you configure a
+      minimum count threshold. Pass <code class="bg-gray-800 px-1 rounded text-sm">?count=</code>
+      with your ping, set the threshold to <code class="bg-gray-800 px-1 rounded text-sm">count &gt; 0</code>,
+      and you'll get alerted when the job runs but does nothing useful. Learn more about
+      <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">output assertions →</a>
+    </p>
+  </div>
+
+  <!-- Related guides -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/railway-cron-monitoring" class="text-brand-500 hover:underline">Railway cron job monitoring</a></li>
+      <li><a href="/render-cron-monitoring" class="text-brand-500 hover:underline">Render cron job monitoring</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/backup-monitoring" class="text-brand-500 hover:underline">Backup job monitoring</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}
