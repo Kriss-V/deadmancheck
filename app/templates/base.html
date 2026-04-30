@@ -18,8 +18,12 @@
         <a href="/pricing" class="hover:text-white transition-colors">Pricing</a>
         <a href="/docs/quickstart" class="hover:text-white transition-colors">Docs</a>
         <a href="https://github.com/Kriss-V/deadmancheck" class="hover:text-white transition-colors">GitHub</a>
+        {% if request.cookies.get('access_token') %}
+        <a href="/dashboard" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Dashboard</a>
+        {% else %}
         <a href="/login" class="hover:text-white transition-colors">Log in</a>
         <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Get started free</a>
+        {% endif %}
       </div>
     </div>
   </nav>
