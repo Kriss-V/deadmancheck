@@ -69,12 +69,21 @@ async def uptime_detail(
     recent = [c for c in checks if c.checked_at >= cutoff]
     uptime_pct = round(sum(1 for c in recent if c.is_up) / len(recent) * 100, 1) if recent else None
 
+    # Chart data — oldest first, only checks with response times
+    chart_checks = [c for c in reversed(checks) if c.response_ms is not None]
+    chart_labels = [c.checked_at.strftime('%H:%M') for c in chart_checks]
+    chart_values = [round(c.response_ms, 1) for c in chart_checks]
+    chart_colors = ['#22c55e' if c.is_up else '#ef4444' for c in chart_checks]
+
     return templates.TemplateResponse("uptime/detail.html", {
         "request": request,
         "user": user,
         "monitor": monitor,
         "checks": checks,
         "uptime_pct": uptime_pct,
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+        "chart_colors": chart_colors,
     })
 
 

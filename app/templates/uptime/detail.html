@@ -65,6 +65,56 @@
     </div>
   </div>
 
+  <!-- Response time graph -->
+  {% if chart_values %}
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
+    <h2 class="font-semibold mb-4">Response time <span class="text-gray-500 font-normal text-sm">(last {{ chart_values|length }} checks)</span></h2>
+    <canvas id="responseChart" height="80"></canvas>
+  </div>
+  <script src="/static/js/chart.min.js" nonce="{{ request.state.nonce }}"></script>
+  <script nonce="{{ request.state.nonce }}">
+    new Chart(document.getElementById('responseChart'), {
+      type: 'line',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+          data: {{ chart_values | tojson }},
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.1)',
+          pointBackgroundColor: {{ chart_colors | tojson }},
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.parsed.y + 'ms'
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6b7280', maxTicksLimit: 10 },
+            grid: { color: '#1f2937' }
+          },
+          y: {
+            ticks: { color: '#6b7280', callback: v => v + 'ms' },
+            grid: { color: '#1f2937' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+  {% endif %}
+
   <!-- Check history -->
   <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
