@@ -12,10 +12,11 @@
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased">
   {% block nav %}
-  <nav class="border-b border-gray-800 px-6 py-4">
+  <nav class="border-b border-gray-800 px-4 sm:px-6 py-3 sm:py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <a href="/"><img src="/static/images/deadmancheck_logo_v6.svg" alt="DeadManCheck" class="h-20 w-auto"></a>
-      <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/"><img src="/static/images/deadmancheck_logo_v6.svg" alt="DeadManCheck" class="h-11 sm:h-14 w-auto"></a>
+      <!-- Desktop nav -->
+      <div class="hidden sm:flex items-center gap-6 text-sm text-gray-400">
         <a href="/pricing" class="hover:text-white transition-colors">Pricing</a>
         <a href="/docs/quickstart" class="hover:text-white transition-colors">Docs</a>
         <a href="https://github.com/Kriss-V/deadmancheck" class="hover:text-white transition-colors">GitHub</a>
@@ -26,8 +27,31 @@
         <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">Get started free</a>
         {% endif %}
       </div>
+      <!-- Mobile hamburger -->
+      <button id="mobile-nav-btn" class="sm:hidden text-gray-400 hover:text-white p-1" aria-label="Toggle menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-nav" class="hidden sm:hidden mt-3 pb-2 border-t border-gray-800 pt-3 space-y-1 text-sm text-gray-400">
+      <a href="/pricing" class="block px-2 py-2 rounded hover:text-white hover:bg-gray-800 transition-colors">Pricing</a>
+      <a href="/docs/quickstart" class="block px-2 py-2 rounded hover:text-white hover:bg-gray-800 transition-colors">Docs</a>
+      <a href="https://github.com/Kriss-V/deadmancheck" class="block px-2 py-2 rounded hover:text-white hover:bg-gray-800 transition-colors">GitHub</a>
+      {% if request.cookies.get('access_token') %}
+      <a href="/dashboard" class="block mt-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-colors font-medium text-center">Dashboard</a>
+      {% else %}
+      <a href="/login" class="block px-2 py-2 rounded hover:text-white hover:bg-gray-800 transition-colors">Log in</a>
+      <a href="/register" class="block mt-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg transition-colors font-medium text-center">Get started free</a>
+      {% endif %}
     </div>
   </nav>
+  <script>
+    document.getElementById('mobile-nav-btn').addEventListener('click', function() {
+      document.getElementById('mobile-nav').classList.toggle('hidden');
+    });
+  </script>
   {% endblock %}
 
   {% block content %}{% endblock %}
