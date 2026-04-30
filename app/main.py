@@ -8,14 +8,24 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from prometheus_fastapi_instrumentator import Instrumentator
+from sqlalchemy import text
 
-from app.routers import auth, billing, monitors, ping, seo_pages, status_pages, uptime
+from app.database import engine
+from app.routers import auth, billing, monitors, oauth, ping, seo_pages, status_pages, uptime
 from app.services.redis_client import close_redis, init_redis
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 
+async def _run_migrations():
+    async with engine.begin() as conn:
+        await conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(50)"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id VARCHAR(255)"))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await _run_migrations()
     await init_redis()
     start_scheduler()
     yield
@@ -64,6 +74,7 @@ templates.env.filters["fromjson"] = json.loads
 
 app.include_router(ping.router)
 app.include_router(auth.router)
+app.include_router(oauth.router)
 app.include_router(monitors.router)
 app.include_router(billing.router)
 app.include_router(status_pages.router)
