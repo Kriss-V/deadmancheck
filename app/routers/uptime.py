@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import Monitor, UptimeCheck, UptimeMonitor, User
-from app.routers.monitors import PLAN_LIMITS, _count_all_monitors
+from app.routers.monitors import PLAN_LIMITS, _count_all_monitors, check_alert_plan
 from app.services.auth import get_current_user
 
 router = APIRouter(tags=["uptime"])
@@ -126,6 +126,7 @@ async def create_uptime_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    check_alert_plan(user, body)
     # Enforce shared plan limit (cron + uptime combined)
     limit = PLAN_LIMITS.get(user.plan, 5)
     if limit is not None:
@@ -152,6 +153,7 @@ async def update_uptime_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    check_alert_plan(user, body)
     monitor = await _get_owned_monitor(monitor_id, user, db)
     for field, value in body.model_dump().items():
         setattr(monitor, field, value)

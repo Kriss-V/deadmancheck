@@ -29,6 +29,24 @@ PLAN_LIMITS = {
     "business": None,  # unlimited
 }
 
+_DEVELOPER_PLANS = {"developer", "team", "business"}
+_TEAM_PLANS = {"team", "business"}
+
+
+def check_alert_plan(user: User, body) -> None:
+    if user.plan not in _DEVELOPER_PLANS:
+        if body.slack_webhook_url or body.discord_webhook_url or body.telegram_bot_token:
+            raise HTTPException(
+                status_code=402,
+                detail="Slack, Discord, and Telegram alerts require the Developer plan or higher.",
+            )
+    if user.plan not in _TEAM_PLANS:
+        if body.pagerduty_key:
+            raise HTTPException(
+                status_code=402,
+                detail="PagerDuty integration requires the Team plan or higher.",
+            )
+
 
 async def _count_all_monitors(user_id, db: AsyncSession) -> int:
     cron = (await db.execute(select(func.count()).where(Monitor.user_id == user_id))).scalar()
@@ -137,6 +155,7 @@ async def create_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    check_alert_plan(user, body)
     # Enforce plan limit (shared pool: cron + uptime)
     limit = PLAN_LIMITS.get(user.plan, 5)
     if limit is not None:
@@ -162,6 +181,7 @@ async def update_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    check_alert_plan(user, body)
     monitor = await _get_owned_monitor(monitor_id, user, db)
     for field, value in body.model_dump().items():
         setattr(monitor, field, value)
