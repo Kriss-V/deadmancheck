@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Website Uptime Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor your websites and APIs every 1–60 minutes. Get instant alerts via email, Slack, Discord, or PagerDuty the moment your site goes down. Free for 5 monitors.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Website Uptime Monitoring</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    DeadManCheck pings your URLs on a schedule and alerts you the moment your site goes down —
+    before your customers do. Response time tracking included on every check.
+  </p>
+
+  <!-- How it works -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">How it works</h2>
+    <p class="text-gray-400 mb-4">
+      Add a URL, set a check interval, and choose your alert channels. DeadManCheck checks your
+      site on schedule and alerts you immediately if it doesn't respond with the expected status code.
+    </p>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Check intervals</span> — every 1, 5, 10, 15, 30, or 60 minutes.</li>
+      <li><span class="text-white font-medium">Status code validation</span> — alert if the response code doesn't match what you expect (default: 200).</li>
+      <li><span class="text-white font-medium">Response time tracking</span> — every check records latency in milliseconds. Spot slowdowns before they become outages.</li>
+      <li><span class="text-white font-medium">Timeout detection</span> — configurable timeout (5–30 seconds). If your site hangs, you get alerted.</li>
+    </ul>
+  </div>
+
+  <!-- Alert channels -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Alert channels</h2>
+    <p class="text-gray-400 mb-4">
+      Get notified wherever your team works. All channels are configured per monitor.
+    </p>
+    <ul class="text-gray-400 space-y-2">
+      <li><span class="text-white font-medium">Email</span> — instant down and recovery alerts</li>
+      <li><span class="text-white font-medium">Slack</span> — webhook-based alerts to any channel</li>
+      <li><span class="text-white font-medium">Discord</span> — webhook alerts for your server</li>
+      <li><span class="text-white font-medium">Telegram</span> — bot-based alerts to any chat</li>
+      <li><span class="text-white font-medium">PagerDuty</span> — full incident lifecycle (trigger + resolve)</li>
+      <li><span class="text-white font-medium">Webhook</span> — POST to any endpoint on your infrastructure</li>
+    </ul>
+  </div>
+
+  <!-- Performance metrics -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Performance metrics</h2>
+    <p class="text-gray-400 mb-4">
+      Every uptime check records response time so you can track performance over time — not just availability.
+      View check history per monitor to spot degradation before it causes an outage.
+    </p>
+    <ul class="text-gray-400 space-y-2">
+      <li>Response time per check (ms)</li>
+      <li>Full check history with timestamps</li>
+      <li>Down/recovery event log</li>
+    </ul>
+  </div>
+
+  <!-- Related -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related features</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/public-status-pages" class="text-brand-500 hover:underline">Public status pages — share uptime with your users</a></li>
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">Cron job monitoring — monitor scheduled jobs too</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}

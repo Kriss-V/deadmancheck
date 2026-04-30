@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Public Status Pages — DeadManCheck{% endblock %}
+{% block meta_description %}Share a live status page with your users. Pick which monitors to show, give it a custom slug, and link it from your site. Free on all plans — no $25/mo add-on.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Public Status Pages</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Give your users a live view of your system health. Pick which monitors to display,
+    publish a status page at a custom URL, and link it from your site — free on all plans.
+  </p>
+
+  <!-- How it works -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">How it works</h2>
+    <p class="text-gray-400 mb-4">
+      Create a status page, choose a slug (e.g. <code class="bg-gray-800 px-1 rounded text-sm">status.yourcompany.com/s/your-slug</code>),
+      and select which of your monitors to display. The page updates in real time as monitors go
+      up and down.
+    </p>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Custom slug</span> — pick a memorable URL for your status page.</li>
+      <li><span class="text-white font-medium">Choose your monitors</span> — show only what's relevant to your users. Keep internal monitors private.</li>
+      <li><span class="text-white font-medium">Live status</span> — green/red indicators update as your monitors change state.</li>
+      <li><span class="text-white font-medium">No login required</span> — your users can view the page without an account.</li>
+    </ul>
+  </div>
+
+  <!-- Why it matters -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Why a status page matters</h2>
+    <p class="text-gray-400 mb-4">
+      When something goes down, your users notice before you do. A public status page gives them
+      somewhere to check — reducing support tickets and building trust. It also signals that you
+      take reliability seriously.
+    </p>
+    <p class="text-gray-400">
+      Cronitor charges $25/mo extra for status pages. DeadManCheck includes them on every plan,
+      including free.
+    </p>
+  </div>
+
+  <!-- What to display -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What to put on your status page</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><span class="text-white font-medium">Uptime monitors</span> — your website, API, and key endpoints</li>
+      <li><span class="text-white font-medium">Cron job monitors</span> — critical background jobs your users depend on</li>
+      <li><span class="text-white font-medium">Data pipeline monitors</span> — ETL jobs that feed your product's data</li>
+    </ul>
+  </div>
+
+  <!-- Related -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related features</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/uptime-monitoring" class="text-brand-500 hover:underline">Uptime monitoring — monitor URLs every 1–60 minutes</a></li>
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">Cron job monitoring — monitor scheduled jobs</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Create your status page free
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free on all plans. No credit card needed.</p>
+  </div>
+
+</section>
+{% endblock %}
