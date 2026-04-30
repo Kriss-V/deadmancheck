@@ -95,13 +95,21 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
+              title: items => new Date(items[0].label).toLocaleString(),
               label: ctx => ctx.parsed.y + 'ms'
             }
           }
         },
         scales: {
           x: {
-            ticks: { color: '#6b7280', maxTicksLimit: 10 },
+            ticks: {
+              color: '#6b7280',
+              maxTicksLimit: 10,
+              callback: (_, i, ticks) => {
+                const iso = {{ chart_labels | tojson }}[i];
+                return iso ? new Date(iso).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
+              }
+            },
             grid: { color: '#1f2937' }
           },
           y: {
@@ -155,7 +163,7 @@
           {% if check.response_ms %}
           <span>{{ check.response_ms|int }}ms</span>
           {% endif %}
-          <span>{{ check.checked_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
+          <span class="utc-time" data-utc="{{ check.checked_at.strftime('%Y-%m-%dT%H:%M:%SZ') }}">{{ check.checked_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</span>
         </div>
       </div>
       {% endfor %}
@@ -166,5 +174,12 @@
     </div>
     {% endif %}
   </div>
+
+  <script nonce="{{ request.state.nonce }}">
+    document.querySelectorAll('.utc-time').forEach(el => {
+      const d = new Date(el.dataset.utc);
+      el.textContent = d.toLocaleString();
+    });
+  </script>
 </div>
 {% endblock %}
