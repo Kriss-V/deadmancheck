@@ -54,6 +54,8 @@ async def send_down_alert(monitor: Monitor, reason: str, db: AsyncSession) -> No
 async def maybe_send_recovery_alert(monitor: Monitor, db: AsyncSession) -> None:
     if not monitor.alert_on_recovery:
         return
+    if not monitor.alert_sent_at:
+        return
 
     monitor.alert_sent_at = None
     await db.commit()
@@ -182,6 +184,11 @@ async def send_uptime_down_alert(monitor, status_code, error, db: AsyncSession) 
 async def maybe_send_uptime_recovery(monitor, db: AsyncSession) -> None:
     if not monitor.alert_on_recovery:
         return
+    if not monitor.alert_sent_at:
+        return
+
+    monitor.alert_sent_at = None
+    await db.commit()
 
     subject = f"[DeadManCheck] {monitor.name} is back UP"
     html_body = f"""
