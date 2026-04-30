@@ -59,14 +59,14 @@
 
 <!-- Assertions callout -->
 <section class="max-w-4xl mx-auto px-6 pb-16">
-  <div class="bg-gray-900 border border-brand-500/30 rounded-2xl p-8">
+  <div class="bg-gray-900 border border-brand-500/30 rounded-2xl p-5 sm:p-8 overflow-hidden">
     <div class="flex items-start gap-6">
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <div class="flex items-center gap-3 mb-3">
           <span class="text-3xl">🔬</span>
           <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Only on DeadManCheck</span>
         </div>
-        <h2 class="text-2xl font-bold mb-3">Your backup ran. It exported 0 rows. You found out three weeks later.</h2>
+        <h2 class="text-xl sm:text-2xl font-bold mb-3">Your backup ran. It exported 0 rows. You found out three weeks later.</h2>
         <p class="text-gray-400 mb-4">Every other monitoring tool only asks <em>did it run?</em> DeadManCheck also asks <em>did it actually do anything?</em> Send a JSON payload with your ping and define assertion rules. If the output doesn't match — you get alerted immediately, even though the job technically succeeded. <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">How output assertions work →</a></p>
         <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm text-gray-300 overflow-x-auto">
           <div class="text-gray-500 mb-2"># Ping with output — assertions evaluated server-side</div>
