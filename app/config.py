@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     plan_team_monitors: int = 200
     plan_business_monitors: int = 1000
 
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    github_client_id: str = ""
+    github_client_secret: str = ""
+
     class Config:
         env_file = ".env"
 
