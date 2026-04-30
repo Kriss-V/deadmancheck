@@ -17,10 +17,19 @@ from app.services.scheduler import start_scheduler, stop_scheduler
 
 
 async def _run_migrations():
+    import logging
+    logger = logging.getLogger(__name__)
+    statements = [
+        "ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(50)",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id VARCHAR(255)",
+    ]
     async with engine.begin() as conn:
-        await conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(50)"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id VARCHAR(255)"))
+        for stmt in statements:
+            try:
+                await conn.execute(text(stmt))
+            except Exception as e:
+                logger.warning(f"Migration skipped ({stmt}): {e}")
 
 
 @asynccontextmanager
