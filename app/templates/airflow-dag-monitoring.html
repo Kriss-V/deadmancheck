@@ -40,10 +40,12 @@
     </p>
     <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
       <span class="text-gray-500"># airflow/dags/my_export_dag.py</span><br>
+      <span class="text-gray-500"># Airflow 2.x imports. For 3.x: from airflow.sdk import DAG</span><br>
+      <span class="text-gray-500">#                                from airflow.providers.standard.operators.python import PythonOperator</span><br>
       import requests<br>
-      from airflow.sdk import DAG<br>
-      from airflow.providers.standard.operators.python import PythonOperator<br>
-      from datetime import datetime, timedelta<br>
+      from airflow import DAG<br>
+      from airflow.operators.python import PythonOperator<br>
+      from datetime import datetime<br>
       <br>
       DEADMANCHECK_TOKEN = "your-monitor-token"<br>
       <br>
@@ -82,7 +84,7 @@
       the Airflow task graph — add it as a final <code class="bg-gray-800 px-1 rounded text-sm">PythonOperator</code>.
     </p>
     <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
-      from airflow.providers.standard.operators.python import PythonOperator<br>
+      from airflow.operators.python import PythonOperator<br>
       from airflow.providers.http.operators.http import HttpOperator<br>
       <br>
       <span class="text-gray-500"># Or use HttpOperator for a dependency-free approach:</span><br>
@@ -136,11 +138,12 @@
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout=5<br>
       &nbsp;&nbsp;&nbsp;&nbsp;)<br>
       <br>
-      with DAG(<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;...<br>
+      <span class="text-gray-500"># Airflow 2.x: attach on_execute_callback to your first task, not the DAG</span><br>
+      export_task = PythonOperator(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;task_id="export_data",<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;python_callable=run_export,<br>
       &nbsp;&nbsp;&nbsp;&nbsp;on_execute_callback=ping_start,<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;on_success_callback=ping_deadmancheck,<br>
-      ) as dag:
+      )
     </div>
     <p class="text-gray-400 text-sm">
       Once you have 5+ runs of history, DeadManCheck builds a rolling average and alerts when
