@@ -113,10 +113,14 @@
         <button type="button" id="addAssertionBtn" class="text-brand-500 hover:text-brand-400 text-xs transition-colors">+ Add rule</button>
         {% endif %}
       </div>
-      <p class="text-xs text-gray-500 mb-4">POST a JSON body with your ping. Alert if the output doesn't match your rules — catch jobs that run but do nothing.</p>
+      <p class="text-xs text-gray-500 mb-3">Alert when your job runs but produces nothing — zero rows exported, zero records synced, zero emails sent.</p>
       {% if user.plan != 'free' %}
+      <div class="bg-gray-800 rounded-lg p-3 mb-4 text-xs space-y-1">
+        <p class="text-gray-400"><span class="text-white font-medium">Step 1</span> — Send a count with your ping:</p>
+        <code class="text-gray-300 block pl-2">curl -X POST .../ping/TOKEN \<br>&nbsp;&nbsp;-H "Content-Type: application/json" \<br>&nbsp;&nbsp;-d '{"count": 1500}'</code>
+        <p class="text-gray-400 pt-1"><span class="text-white font-medium">Step 2</span> — Add a rule below, e.g. <code class="text-gray-300">count &gt; 0</code> to alert if nothing was processed.</p>
+      </div>
       <div id="assertionRules" class="space-y-2"></div>
-      <p class="text-xs text-gray-600 mt-3">Example: <code class="text-gray-500">curl -X POST .../ping/ID -H "Content-Type: application/json" -d '{"count": 1500}'</code></p>
       {% else %}
       <p class="text-xs text-gray-600">Upgrade to Developer to validate your job's output on every ping.</p>
       {% endif %}
