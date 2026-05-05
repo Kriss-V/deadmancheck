@@ -56,13 +56,14 @@ def failed_results(results: list[dict]) -> list[dict]:
 
 
 def _get_nested(payload: dict, field: str) -> Any:
-    """Support dot notation: 'stats.rows_exported'"""
+    """Support dot notation: 'stats.rows_exported'. Key lookup is case-insensitive."""
     parts = field.split(".")
     val = payload
     for part in parts:
         if not isinstance(val, dict):
             return None
-        val = val.get(part)
+        part_lower = part.lower()
+        val = next((v for k, v in val.items() if k.lower() == part_lower), None)
     return val
 
 
