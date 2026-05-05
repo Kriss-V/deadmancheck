@@ -110,7 +110,7 @@
           {% endif %}
         </div>
         {% if user.plan != 'free' %}
-        <a href="#" onclick="addAssertionRow(); return false;" class="text-brand-500 hover:text-brand-400 text-xs transition-colors">+ Add rule</a>
+        <button type="button" id="addAssertionBtn" class="text-brand-500 hover:text-brand-400 text-xs transition-colors">+ Add rule</button>
         {% endif %}
       </div>
       <p class="text-xs text-gray-500 mb-4">POST a JSON body with your ping. Alert if the output doesn't match your rules — catch jobs that run but do nothing.</p>
@@ -206,7 +206,7 @@ function addAssertionRow(field='', op='>', value='') {
     </select>
     <input type="text" placeholder="value" value="${value}"
       class="w-28 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-value">
-    <button type="button" onclick="this.parentElement.remove()" class="text-gray-600 hover:text-red-400 transition-colors text-lg leading-none">×</button>
+    <button type="button" class="remove-assertion-row text-gray-600 hover:text-red-400 transition-colors text-lg leading-none">×</button>
   `;
   container.appendChild(row);
 }
@@ -221,6 +221,11 @@ function getAssertions() {
 
 // Load existing assertions on edit
 EXISTING_ASSERTIONS.forEach(r => addAssertionRow(r.field, r.op, r.value));
+
+document.getElementById('addAssertionBtn')?.addEventListener('click', () => addAssertionRow());
+document.getElementById('assertionRules')?.addEventListener('click', e => {
+  if (e.target.classList.contains('remove-assertion-row')) e.target.parentElement.remove();
+});
 
 let scheduleType = '{{ monitor.schedule_type if monitor else "period" }}';
 
