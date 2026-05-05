@@ -14,7 +14,8 @@ SUPPORTED_OPS = {">", ">=", "<", "<=", "==", "!=", "exists", "contains"}
 def evaluate_assertions(rules_json: str | None, payload: dict) -> list[dict]:
     """
     Evaluate assertion rules against a ping payload.
-    Returns a list of result dicts, each with: field, op, value, actual, passed.
+    Always evaluates against the 'count' field in the payload.
+    Returns a list of result dicts, each with: op, value, actual, passed.
     """
     if not rules_json:
         return []
@@ -24,25 +25,17 @@ def evaluate_assertions(rules_json: str | None, payload: dict) -> list[dict]:
     except (json.JSONDecodeError, TypeError):
         return []
 
+    actual = payload.get("count")
     results = []
     for rule in rules:
-        field = rule.get("field", "")
         op = rule.get("op", "")
         expected = rule.get("value")
 
-        if not field or op not in SUPPORTED_OPS:
+        if op not in SUPPORTED_OPS:
             continue
 
-        actual = _get_nested(payload, field)
         passed = _check(op, actual, expected)
-
-        results.append({
-            "field": field,
-            "op": op,
-            "value": expected,
-            "actual": actual,
-            "passed": passed,
-        })
+        results.append({"op": op, "value": expected, "actual": actual, "passed": passed})
 
     return results
 

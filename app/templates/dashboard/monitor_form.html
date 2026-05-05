@@ -116,7 +116,7 @@
       <p class="text-xs text-gray-500 mb-4">POST a JSON body with your ping. Alert if the output doesn't match your rules — catch jobs that run but do nothing.</p>
       {% if user.plan != 'free' %}
       <div id="assertionRules" class="space-y-2"></div>
-      <p class="text-xs text-gray-600 mt-3">Example: <code class="text-gray-500">curl -X POST .../ping/ID -H "Content-Type: application/json" -d '{"rows": 1500}'</code></p>
+      <p class="text-xs text-gray-600 mt-3">Example: <code class="text-gray-500">curl -X POST .../ping/ID -H "Content-Type: application/json" -d '{"count": 1500}'</code></p>
       {% else %}
       <p class="text-xs text-gray-600">Upgrade to Developer to validate your job's output on every ping.</p>
       {% endif %}
@@ -197,11 +197,9 @@ function addAssertionRow(field='', op='>', value='') {
   const row = document.createElement('div');
   row.className = 'flex items-center gap-2';
 
-  const fieldInput = document.createElement('input');
-  fieldInput.type = 'text';
-  fieldInput.placeholder = 'field';
-  fieldInput.value = field;
-  fieldInput.className = 'flex-1 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-field';
+  const label = document.createElement('span');
+  label.textContent = 'count';
+  label.className = 'text-gray-400 text-sm font-mono px-2';
 
   const opSelect = document.createElement('select');
   opSelect.className = 'bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none assertion-op';
@@ -225,7 +223,7 @@ function addAssertionRow(field='', op='>', value='') {
   removeBtn.textContent = '×';
   removeBtn.addEventListener('click', () => row.remove());
 
-  row.appendChild(fieldInput);
+  row.appendChild(label);
   row.appendChild(opSelect);
   row.appendChild(valueInput);
   row.appendChild(removeBtn);
@@ -234,10 +232,9 @@ function addAssertionRow(field='', op='>', value='') {
 
 function getAssertions() {
   return Array.from(document.querySelectorAll('#assertionRules > div')).map(row => ({
-    field: row.querySelector('.assertion-field').value.trim(),
     op: row.querySelector('.assertion-op').value,
     value: row.querySelector('.assertion-value').value.trim(),
-  })).filter(r => r.field);
+  })).filter(r => r.value !== '');
 }
 
 // Load existing assertions on edit

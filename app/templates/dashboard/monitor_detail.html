@@ -183,7 +183,7 @@
             {% if assertion_data %}
               {% for r in assertion_data %}
               <div class="{{ 'text-green-400' if r.passed else 'text-red-400' }}">
-                {{ '✓' if r.passed else '✗' }} {{ r.field }} {{ r.op }} {{ r.value }}{% if not r.passed %} <span class="text-gray-500">(got {{ r.actual }})</span>{% endif %}
+                {{ '✓' if r.passed else '✗' }} count {{ r.op }} {{ r.value }}{% if not r.passed %} <span class="text-gray-500">(got {{ r.actual }})</span>{% endif %}
               </div>
               {% endfor %}
             {% else %}—{% endif %}
