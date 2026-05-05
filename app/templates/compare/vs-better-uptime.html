@@ -115,7 +115,8 @@
           actually did something. Include a count with your ping:
         </p>
         <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono">
-          curl -fsS "https://deadmancheck.io/ping/TOKEN<span class="text-brand-500">?count=842</span>" &gt; /dev/null
+          curl -fsS -X POST -H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"count": 842}' https://deadmancheck.io/ping/TOKEN
         </div>
         <p class="text-gray-400 mt-3">
           Configure the assertion: alert if count is 0. Your ETL job that runs but processes nothing

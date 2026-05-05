@@ -73,7 +73,8 @@
       ROWS=$(/app/run-export.sh)<br>
       <br>
       <span class="text-gray-500"># Signal success + row count for output assertion</span><br>
-      curl -fsS "${BASE}?count=${ROWS}" &gt; /dev/null
+      curl -fsS -X POST -H "Content-Type: application/json" \<br>
+      &nbsp;&nbsp;-d "{\"count\": ${ROWS}}" "${BASE}" &gt; /dev/null
     </div>
 
     <h3 class="text-lg font-semibold mb-3">Python job with output assertion</h3>
@@ -135,8 +136,8 @@
       "this job completed but processed nothing."
     </p>
     <p class="text-gray-400 mb-4">
-      DeadManCheck's <span class="text-brand-500">output assertions</span> close this gap. Pass a
-      <code class="bg-gray-800 px-1 rounded text-sm">?count=</code> parameter with your ping and
+      DeadManCheck's <span class="text-brand-500">output assertions</span> close this gap. POST a
+      <code class="bg-gray-800 px-1 rounded text-sm">count</code> with your ping and
       set a minimum threshold. If your nightly export sends <code class="bg-gray-800 px-1 rounded text-sm">count=0</code>,
       you get paged — even though Kubernetes reports the Job as successful.
     </p>

@@ -91,7 +91,8 @@
         </p>
         <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mt-3">
           <span class="text-gray-500"># One extra param. One extra layer of protection.</span><br>
-          curl -fsS "https://deadmancheck.io/ping/TOKEN<span class="text-brand-500">?count=1547</span>" &gt; /dev/null
+          curl -fsS -X POST -H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"count": 1547}' https://deadmancheck.io/ping/TOKEN
         </div>
       </div>
 
