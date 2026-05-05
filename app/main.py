@@ -103,6 +103,7 @@ Allow: /
 Disallow: /dashboard
 Disallow: /monitors/
 Disallow: /api/
+Disallow: /ping/
 Disallow: /status-pages/
 Disallow: /uptime/
 Disallow: /checkout
