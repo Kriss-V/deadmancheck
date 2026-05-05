@@ -196,18 +196,39 @@ function addAssertionRow(field='', op='>', value='') {
   const container = document.getElementById('assertionRules');
   const row = document.createElement('div');
   row.className = 'flex items-center gap-2';
-  row.innerHTML = `
-    <input type="text" placeholder="field" value="${field}"
-      class="flex-1 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-field">
-    <select class="bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none assertion-op">
-      ${['>', '>=', '<', '<=', '==', '!=', 'exists', 'contains'].map(o =>
-        `<option value="${o}" ${o === op ? 'selected' : ''}>${o}</option>`
-      ).join('')}
-    </select>
-    <input type="text" placeholder="value" value="${value}"
-      class="w-28 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-value">
-    <button type="button" class="remove-assertion-row text-gray-600 hover:text-red-400 transition-colors text-lg leading-none">×</button>
-  `;
+
+  const fieldInput = document.createElement('input');
+  fieldInput.type = 'text';
+  fieldInput.placeholder = 'field';
+  fieldInput.value = field;
+  fieldInput.className = 'flex-1 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-field';
+
+  const opSelect = document.createElement('select');
+  opSelect.className = 'bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none assertion-op';
+  ['>', '>=', '<', '<=', '==', '!=', 'exists', 'contains'].forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o;
+    opt.textContent = o;
+    if (o === op) opt.selected = true;
+    opSelect.appendChild(opt);
+  });
+
+  const valueInput = document.createElement('input');
+  valueInput.type = 'text';
+  valueInput.placeholder = 'value';
+  valueInput.value = value;
+  valueInput.className = 'w-28 bg-gray-800 border border-gray-700 focus:border-brand-500 rounded-lg px-3 py-2 text-white text-sm outline-none font-mono assertion-value';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'text-gray-600 hover:text-red-400 transition-colors text-lg leading-none';
+  removeBtn.textContent = '×';
+  removeBtn.addEventListener('click', () => row.remove());
+
+  row.appendChild(fieldInput);
+  row.appendChild(opSelect);
+  row.appendChild(valueInput);
+  row.appendChild(removeBtn);
   container.appendChild(row);
 }
 
@@ -223,9 +244,6 @@ function getAssertions() {
 EXISTING_ASSERTIONS.forEach(r => addAssertionRow(r.field, r.op, r.value));
 
 document.getElementById('addAssertionBtn')?.addEventListener('click', () => addAssertionRow());
-document.getElementById('assertionRules')?.addEventListener('click', e => {
-  if (e.target.classList.contains('remove-assertion-row')) e.target.parentElement.remove();
-});
 
 let scheduleType = '{{ monitor.schedule_type if monitor else "period" }}';
 
