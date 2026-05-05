@@ -73,7 +73,7 @@
         </div>
         <div class="text-right text-sm text-gray-400">
           {% if m.last_ping_at %}
-          <div>Last ping: {{ m.last_ping_at.strftime('%H:%M:%S') }}</div>
+          <div class="utc-time" data-utc="{{ m.last_ping_at.strftime('%Y-%m-%dT%H:%M:%SZ') }}">{{ m.last_ping_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
           {% if m.last_duration_seconds %}
           <div class="text-xs mt-0.5">{{ '%.1f'|format(m.last_duration_seconds) }}s duration</div>
           {% endif %}
@@ -96,4 +96,9 @@
   </div>
   {% endif %}
 </div>
+<script nonce="{{ request.state.nonce }}">
+document.querySelectorAll('.utc-time').forEach(el => {
+  el.textContent = new Date(el.dataset.utc).toLocaleString();
+});
+</script>
 {% endblock %}
