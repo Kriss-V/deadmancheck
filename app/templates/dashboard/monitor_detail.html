@@ -63,7 +63,11 @@
   <div class="grid grid-cols-3 gap-4 mb-8">
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
       <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Last ping</p>
-      <p class="font-semibold">{{ monitor.last_ping_at.strftime('%H:%M:%S') if monitor.last_ping_at else '—' }}</p>
+      {% if monitor.last_ping_at %}
+      <p class="font-semibold last-ping-time" data-utc="{{ monitor.last_ping_at.strftime('%Y-%m-%dT%H:%M:%SZ') }}">{{ monitor.last_ping_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+      {% else %}
+      <p class="font-semibold">—</p>
+      {% endif %}
     </div>
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
       <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Avg duration</p>
@@ -155,7 +159,7 @@
         {% for p in pings %}
         {% set assertion_data = p.assertion_results | fromjson if p.assertion_results else [] %}
         <tr class="hover:bg-gray-800/50 transition-colors {% if p.duration_anomaly or p.kind == 'assertion_fail' %}bg-yellow-900/10{% endif %}">
-          <td class="px-5 py-3 font-mono text-xs text-gray-300">{{ p.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td class="px-5 py-3 font-mono text-xs text-gray-300 utc-time" data-utc="{{ p.received_at.strftime('%Y-%m-%dT%H:%M:%SZ') }}">{{ p.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
           <td class="px-5 py-3">
             {% if p.kind == 'success' %}
             <span class="text-brand-500">✓ success</span>
@@ -199,6 +203,10 @@
 </div>
 
 <script nonce="{{ request.state.nonce }}">
+document.querySelectorAll('.last-ping-time, .utc-time').forEach(el => {
+  el.textContent = new Date(el.dataset.utc).toLocaleString();
+});
+
 function copyPingUrl(btn, url) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(url).then(() => {
