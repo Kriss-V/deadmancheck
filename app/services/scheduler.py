@@ -111,7 +111,6 @@ async def _run_uptime_check(
     if is_up:
         monitor.status = "up"
         if prev_status == "down":
-            monitor.alert_sent_at = None
             await db.commit()
             await maybe_send_uptime_recovery(monitor, db)
         else:
