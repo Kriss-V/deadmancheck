@@ -83,6 +83,7 @@ async def new_monitor_page(request: Request, user: User = Depends(get_current_us
         "request": request,
         "user": user,
         "monitor": None,
+        "assertions_list": [],
     })
 
 
@@ -128,10 +129,12 @@ async def edit_monitor_page(
     db: AsyncSession = Depends(get_db),
 ):
     monitor = await _get_owned_monitor(monitor_id, user, db)
+    assertions_list = json.loads(monitor.assertions) if monitor.assertions else []
     return templates.TemplateResponse("dashboard/monitor_form.html", {
         "request": request,
         "user": user,
         "monitor": monitor,
+        "assertions_list": assertions_list,
     })
 
 

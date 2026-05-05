@@ -190,7 +190,7 @@
 </div>
 
 <script nonce="{{ request.state.nonce }}">
-const EXISTING_ASSERTIONS = {{ monitor.assertions | tojson if monitor and monitor.assertions else '[]' }};
+const EXISTING_ASSERTIONS = {{ assertions_list | tojson }};
 
 function addAssertionRow(field='', op='>', value='') {
   const container = document.getElementById('assertionRules');
@@ -285,7 +285,7 @@ document.getElementById('monitorForm').addEventListener('submit', async (e) => {
     telegram_bot_token: form.telegram_bot_token.value || null,
     telegram_chat_id: form.telegram_chat_id.value || null,
     pagerduty_key: form.pagerduty_key.value || null,
-    assertions: JSON.stringify(getAssertions()) || null,
+    assertions: (() => { const a = getAssertions(); return a.length ? JSON.stringify(a) : null; })(),
   };
 
   const monitorId = '{{ monitor.id if monitor else "" }}';
