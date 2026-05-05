@@ -90,7 +90,7 @@
       <div class="text-gray-100">import requests</div>
       <div class="text-gray-100 mt-1">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
       <div class="text-gray-100 mt-2">result = run_etl_pipeline()</div>
-      <div class="text-gray-100 mt-2">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>,</div>
+      <div class="text-gray-100 mt-2">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>"</span>,</div>
       <div class="text-gray-100 pl-4">json={</div>
       <div class="text-gray-100 pl-8"><span class="text-green-400">"rows_inserted"</span>: result.inserted,</div>
       <div class="text-gray-100 pl-8"><span class="text-green-400">"rows_failed"</span>: result.failed,</div>
@@ -101,7 +101,8 @@
       <div class="text-gray-500 mb-3"># Bash</div>
       <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
       <div class="text-gray-100 mt-1">ROWS=$(python etl.py --count-only)</div>
-      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end \</div>
+      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span> \</div>
+      <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
       <div class="text-gray-100 pl-4">-d "{\"rows_inserted\": $ROWS}"</div>
     </div>
     <div class="mt-5 grid md:grid-cols-3 gap-3 text-xs font-mono">

@@ -96,7 +96,7 @@
         <div class="text-gray-500 mb-3"># Bash</div>
         <div class="text-gray-100">ROWS=$(run-etl-job.sh)</div>
         <div class="text-gray-100 mt-2">curl -s -X POST \</div>
-        <div class="text-gray-100 pl-4">https://deadmancheck.io/ping/<span class="text-brand-500">token</span>/end \</div>
+        <div class="text-gray-100 pl-4">https://deadmancheck.io/ping/<span class="text-brand-500">token</span> \</div>
         <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
         <div class="text-gray-100 pl-4">-d "{\"rows\": $ROWS}"</div>
       </div>
@@ -104,7 +104,7 @@
         <div class="text-gray-500 mb-3"># Python</div>
         <div class="text-gray-100">result = run_etl()</div>
         <div class="text-gray-100 mt-2">requests.post(</div>
-        <div class="text-gray-100 pl-4"><span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">token</span>/end"</span>,</div>
+        <div class="text-gray-100 pl-4"><span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">token</span>"</span>,</div>
         <div class="text-gray-100 pl-4">json={<span class="text-green-400">"rows"</span>: result.count,</div>
         <div class="text-gray-100 pl-9">      <span class="text-green-400">"status"</span>: result.status}</div>
         <div class="text-gray-100">)</div>

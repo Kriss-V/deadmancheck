@@ -82,7 +82,7 @@
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
       <div class="text-brand-500 text-3xl font-bold mb-2">1</div>
       <h3 class="font-semibold mb-2">Wrap your job</h3>
-      <p class="text-gray-400 text-sm">Send a <code class="text-brand-500">/start</code> ping before your job runs and an <code class="text-brand-500">/end</code> ping when it completes.</p>
+      <p class="text-gray-400 text-sm">Send a <code class="text-brand-500">/start</code> ping before your job runs and an <code class="text-brand-500"></code> ping when it completes.</p>
     </div>
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
       <div class="text-brand-500 text-3xl font-bold mb-2">2</div>
@@ -103,14 +103,14 @@
       <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
       <div class="text-gray-500 mt-2 mb-1"># your job runs here</div>
       <div class="text-gray-100">your-backup-script.sh</div>
-      <div class="text-gray-100 mt-1">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end</div>
+      <div class="text-gray-100 mt-1">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span></div>
     </div>
     <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
       <div class="text-gray-500 mb-3"># Python</div>
       <div class="text-gray-100">import requests</div>
       <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
       <div class="text-gray-100">run_your_job()</div>
-      <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>)</div>
+      <div class="text-gray-100">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>"</span>)</div>
     </div>
   </div>
 </section>
@@ -169,7 +169,7 @@
     <div class="space-y-4">
       <div class="flex gap-4 items-start">
         <div class="text-gray-500 font-semibold text-sm w-36 shrink-0 mt-0.5">Healthchecks.io</div>
-        <div class="text-gray-400 text-sm">Supports a <code>/start</code> endpoint to measure max runtime, but it only alerts if the job <em>doesn't</em> send an <code>/end</code> ping within the window. There's no automatic baseline learning — it won't catch a job that finishes late but within your manual limit.</div>
+        <div class="text-gray-400 text-sm">Supports a <code>/start</code> endpoint to measure max runtime, but it only alerts if the job <em>doesn't</em> send an <code></code> ping within the window. There's no automatic baseline learning — it won't catch a job that finishes late but within your manual limit.</div>
       </div>
       <div class="border-t border-gray-800"></div>
       <div class="flex gap-4 items-start">

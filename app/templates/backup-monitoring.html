@@ -74,7 +74,7 @@
       <div class="text-gray-500 mb-3"># Bash — with duration + output monitoring</div>
       <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start</div>
       <div class="text-gray-100 mt-1">FILES=$(rsync -av /source/ /backup/ | grep -c "^")</div>
-      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end \</div>
+      <div class="text-gray-100 mt-1">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span> \</div>
       <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
       <div class="text-gray-100 pl-4">-d "{\"files_copied\": $FILES}"</div>
     </div>
@@ -83,7 +83,7 @@
       <div class="text-gray-100">import requests, subprocess</div>
       <div class="text-gray-100 mt-1">requests.get(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/start"</span>)</div>
       <div class="text-gray-100 mt-1">result = run_backup()</div>
-      <div class="text-gray-100 mt-1">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>/end"</span>,</div>
+      <div class="text-gray-100 mt-1">requests.post(<span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span>"</span>,</div>
       <div class="text-gray-100 pl-4">json={<span class="text-green-400">"files_copied"</span>: result.count, <span class="text-green-400">"size_mb"</span>: result.size_mb})</div>
     </div>
     <p class="text-gray-500 text-sm mt-4">Then set assertion <code class="text-brand-500">files_copied &gt; 0</code> in the dashboard. Alert fires if your backup ever runs empty.</p>
