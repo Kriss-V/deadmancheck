@@ -102,12 +102,21 @@ async def monitor_detail(
     )
     pings = result.scalars().all()
     ping_url = f"{settings.app_url}/ping/{monitor.id}"
+
+    duration_pings = [p for p in reversed(pings) if p.duration_seconds is not None]
+    chart_labels = [p.received_at.strftime('%Y-%m-%dT%H:%M:%SZ') for p in duration_pings]
+    chart_values = [round(p.duration_seconds, 2) for p in duration_pings]
+    chart_colors = ['#f59e0b' if p.duration_anomaly else '#22c55e' for p in duration_pings]
+
     return templates.TemplateResponse("dashboard/monitor_detail.html", {
         "request": request,
         "user": user,
         "monitor": monitor,
         "pings": pings,
         "ping_url": ping_url,
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+        "chart_colors": chart_colors,
     })
 
 

@@ -78,6 +78,64 @@
     </div>
   </div>
 
+  <!-- Duration graph -->
+  {% if chart_values %}
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-8">
+    <h2 class="font-semibold mb-4">Duration <span class="text-gray-500 font-normal text-sm">(last {{ chart_values|length }} runs)</span></h2>
+    <canvas id="durationChart" height="80"></canvas>
+  </div>
+  <script src="/static/js/chart.min.js" nonce="{{ request.state.nonce }}"></script>
+  <script nonce="{{ request.state.nonce }}">
+    new Chart(document.getElementById('durationChart'), {
+      type: 'line',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+          data: {{ chart_values | tojson }},
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.1)',
+          pointBackgroundColor: {{ chart_colors | tojson }},
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => new Date(items[0].label).toLocaleString(),
+              label: ctx => ctx.parsed.y + 's'
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#6b7280',
+              maxTicksLimit: 10,
+              callback: (_, i) => {
+                const iso = {{ chart_labels | tojson }}[i];
+                return iso ? new Date(iso).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
+              }
+            },
+            grid: { color: '#1f2937' }
+          },
+          y: {
+            ticks: { color: '#6b7280', callback: v => v + 's' },
+            grid: { color: '#1f2937' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+  {% endif %}
+
   <!-- Recent pings -->
   <h2 class="text-lg font-semibold mb-4">Recent pings</h2>
   {% if pings %}
