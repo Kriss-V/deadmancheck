@@ -90,30 +90,63 @@
   </div>
   <script src="/static/js/chart.min.js" nonce="{{ request.state.nonce }}"></script>
   <script nonce="{{ request.state.nonce }}">
+    const _labels = {{ chart_labels | tojson }};
+    const _values = {{ chart_values | tojson }};
+    const _colors = {{ chart_colors | tojson }};
+    const _avg = {{ (monitor.avg_duration_seconds | round(2)) if monitor.avg_duration_seconds else 'null' }};
+    const _max = {{ monitor.expect_duration_max_seconds if monitor.expect_duration_max_seconds else 'null' }};
+
+    const _datasets = [{
+      data: _values,
+      borderColor: '#6366f1',
+      backgroundColor: 'rgba(99,102,241,0.1)',
+      pointBackgroundColor: _colors,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2,
+      tension: 0.3,
+      fill: true,
+      label: 'Duration',
+    }];
+
+    if (_avg) _datasets.push({
+      data: Array(_labels.length).fill(_avg),
+      borderColor: '#22c55e',
+      borderWidth: 1.5,
+      borderDash: [5, 5],
+      pointRadius: 0,
+      fill: false,
+      label: 'Rolling avg (' + _avg + 's)',
+    });
+
+    if (_max) _datasets.push({
+      data: Array(_labels.length).fill(_max),
+      borderColor: '#ef4444',
+      borderWidth: 1.5,
+      borderDash: [5, 5],
+      pointRadius: 0,
+      fill: false,
+      label: 'Hard max (' + _max + 's)',
+    });
+
     new Chart(document.getElementById('durationChart'), {
       type: 'line',
-      data: {
-        labels: {{ chart_labels | tojson }},
-        datasets: [{
-          data: {{ chart_values | tojson }},
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99,102,241,0.1)',
-          pointBackgroundColor: {{ chart_colors | tojson }},
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true,
-        }]
-      },
+      data: { labels: _labels, datasets: _datasets },
       options: {
         responsive: true,
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: !!(_avg || _max),
+            labels: { color: '#9ca3af', boxWidth: 20, padding: 16 }
+          },
           tooltip: {
             callbacks: {
               title: items => new Date(items[0].label).toLocaleString(),
-              label: ctx => ctx.parsed.y + 's'
+              label: ctx => {
+                if (ctx.datasetIndex !== 0) return ctx.dataset.label;
+                const anomaly = _colors[ctx.dataIndex] === '#f59e0b';
+                return ctx.parsed.y + 's' + (anomaly ? '  ⚠ anomaly' : '');
+              }
             }
           }
         },
@@ -123,7 +156,7 @@
               color: '#6b7280',
               maxTicksLimit: 10,
               callback: (_, i) => {
-                const iso = {{ chart_labels | tojson }}[i];
+                const iso = _labels[i];
                 return iso ? new Date(iso).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
               }
             },
