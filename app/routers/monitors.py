@@ -107,7 +107,13 @@ async def monitor_detail(
     duration_pings = [p for p in reversed(pings) if p.duration_seconds is not None]
     chart_labels = [p.received_at.strftime('%Y-%m-%dT%H:%M:%SZ') for p in duration_pings]
     chart_values = [round(p.duration_seconds, 2) for p in duration_pings]
-    chart_colors = ['#f59e0b' if p.duration_anomaly else '#22c55e' for p in duration_pings]
+    def _dot_color(p):
+        if p.kind == 'assertion_fail':
+            return '#ef4444'
+        if p.duration_anomaly:
+            return '#f59e0b'
+        return '#22c55e'
+    chart_colors = [_dot_color(p) for p in duration_pings]
 
     return templates.TemplateResponse("dashboard/monitor_detail.html", {
         "request": request,

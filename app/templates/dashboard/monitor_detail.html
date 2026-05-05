@@ -85,7 +85,12 @@
   <!-- Duration graph -->
   {% if chart_values %}
   <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-8">
-    <h2 class="font-semibold mb-4">Duration <span class="text-gray-500 font-normal text-sm">(last {{ chart_values|length }} runs)</span></h2>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-semibold">Duration <span class="text-gray-500 font-normal text-sm">(last {{ chart_values|length }} runs)</span></h2>
+      {% if not monitor.expect_duration_enabled %}
+      <span class="text-xs text-gray-500">Anomaly alerts off — <a href="/monitors/{{ monitor.id }}/edit" class="text-brand-500 hover:underline">enable duration monitoring</a> to get alerted when runs take longer than usual</span>
+      {% endif %}
+    </div>
     <canvas id="durationChart" height="80"></canvas>
   </div>
   <script src="/static/js/chart.min.js" nonce="{{ request.state.nonce }}"></script>
@@ -144,8 +149,9 @@
               title: items => new Date(items[0].label).toLocaleString(),
               label: ctx => {
                 if (ctx.datasetIndex !== 0) return ctx.dataset.label;
-                const anomaly = _colors[ctx.dataIndex] === '#f59e0b';
-                return ctx.parsed.y + 's' + (anomaly ? '  ⚠ anomaly' : '');
+                const color = _colors[ctx.dataIndex];
+                const suffix = color === '#ef4444' ? '  ✗ assertion fail' : color === '#f59e0b' ? '  ⚠ anomaly' : '';
+                return ctx.parsed.y + 's' + suffix;
               }
             }
           }
