@@ -37,7 +37,7 @@
         <div class="text-green-400">✓ Exit code 0</div>
         <div class="text-green-400">✓ Ping received</div>
       </div>
-      <div class="text-gray-300 text-xs mt-3">rows_exported: 0 &nbsp;·&nbsp; assertion: <span class="text-brand-500">rows &gt; 0</span></div>
+      <div class="text-gray-300 text-xs mt-3">count: 0 &nbsp;·&nbsp; assertion: <span class="text-brand-500">count &gt; 0</span></div>
       <div class="text-red-400 text-xs mt-1">⚠ Assertion failed — alert sent</div>
     </div>
   </div>
@@ -98,15 +98,14 @@
         <div class="text-gray-100 mt-2">curl -s -X POST \</div>
         <div class="text-gray-100 pl-4">https://deadmancheck.io/ping/<span class="text-brand-500">token</span> \</div>
         <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
-        <div class="text-gray-100 pl-4">-d "{\"rows\": $ROWS}"</div>
+        <div class="text-gray-100 pl-4">-d "{\"count\": $ROWS}"</div>
       </div>
       <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
         <div class="text-gray-500 mb-3"># Python</div>
         <div class="text-gray-100">result = run_etl()</div>
         <div class="text-gray-100 mt-2">requests.post(</div>
         <div class="text-gray-100 pl-4"><span class="text-green-400">"https://deadmancheck.io/ping/<span class="text-brand-500">token</span>"</span>,</div>
-        <div class="text-gray-100 pl-4">json={<span class="text-green-400">"rows"</span>: result.count,</div>
-        <div class="text-gray-100 pl-9">      <span class="text-green-400">"status"</span>: result.status}</div>
+        <div class="text-gray-100 pl-4">json={<span class="text-green-400">"count"</span>: result.count}</div>
         <div class="text-gray-100">)</div>
       </div>
     </div>
@@ -116,10 +115,8 @@
         <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 text-sm">
           <div class="text-gray-500 text-xs mb-2 uppercase tracking-wide">Example assertions</div>
           <div class="font-mono space-y-1">
-            <div><span class="text-brand-500">rows</span> <span class="text-gray-400">&gt;</span> <span class="text-white">0</span></div>
-            <div><span class="text-brand-500">status</span> <span class="text-gray-400">==</span> <span class="text-green-400">"ok"</span></div>
-            <div><span class="text-brand-500">files_written</span> <span class="text-gray-400">&gt;=</span> <span class="text-white">1</span></div>
-            <div><span class="text-brand-500">error_count</span> <span class="text-gray-400">==</span> <span class="text-white">0</span></div>
+            <div><span class="text-brand-500">count</span> <span class="text-gray-400">&gt;</span> <span class="text-white">0</span></div>
+            <div><span class="text-brand-500">count</span> <span class="text-gray-400">&gt;=</span> <span class="text-white">100</span></div>
           </div>
         </div>
         <div class="bg-gray-900 border border-brand-500/40 rounded-lg p-4 text-sm">
