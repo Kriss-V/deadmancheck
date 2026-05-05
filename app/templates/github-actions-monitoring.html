@@ -93,7 +93,9 @@
       - name: Ping done<br>
       &nbsp;&nbsp;if: success()<br>
       &nbsp;&nbsp;run: |<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;curl -fsS <span class="text-brand-500">"https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }}?count=${{ "{{" }} steps.export.outputs.rows {{ "}}" }}"</span> > /dev/null
+      &nbsp;&nbsp;&nbsp;&nbsp;curl -fsS -X POST -H "Content-Type: application/json" \<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-d <span class="text-brand-500">'{"count": ${{ "{{" }} steps.export.outputs.rows {{ "}}" }}}'</span> \<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500">"https://deadmancheck.io/ping/${{ "{{" }} secrets.DEADMANCHECK_TOKEN {{ "}}" }}"</span> > /dev/null
     </div>
     <p class="text-gray-400">
       Configure the assertion in DeadManCheck: "alert if count is 0". Now a successful workflow

@@ -64,9 +64,9 @@
       &nbsp;&nbsp;&nbsp;&nbsp;save_to_db(orders)<br>
       <br>
       &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-brand-500"># Ping DeadManCheck on success</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.post(<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"https://deadmancheck.io/ping/YOUR-TOKEN",<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params={"count": len(orders)},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;json={"count": len(orders)},<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout=5<br>
       &nbsp;&nbsp;&nbsp;&nbsp;)
     </div>

@@ -85,8 +85,8 @@
       &nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/start", timeout=5)<br>
       &nbsp;&nbsp;&nbsp;&nbsp;try:<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;records = run_job()<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># count=records triggers output assertion alert if 0</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(BASE, params={"count": records}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># POST count for output assertion — alerts if job processed nothing</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.post(BASE, json={"count": records}, timeout=5)<br>
       &nbsp;&nbsp;&nbsp;&nbsp;except Exception:<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requests.get(f"{BASE}/fail", timeout=5)<br>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sys.exit(1)<br>

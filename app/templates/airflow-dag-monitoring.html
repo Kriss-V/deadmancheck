@@ -50,10 +50,10 @@
       DEADMANCHECK_TOKEN = "your-monitor-token"<br>
       <br>
       def ping_deadmancheck(context):<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># Called on DAG success — pass row count via ?count= for output assertion</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-gray-500"># Called on DAG success — POST row count for output assertion</span><br>
       &nbsp;&nbsp;&nbsp;&nbsp;rows = context["ti"].xcom_pull(task_ids="export_data", key="rows_exported")<br>
       &nbsp;&nbsp;&nbsp;&nbsp;url = f"https://deadmancheck.io/ping/{DEADMANCHECK_TOKEN}"<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;requests.get(url, params={"count": rows or 0}, timeout=5)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;requests.post(url, json={"count": rows or 0}, timeout=5)<br>
       <br>
       def ping_fail(context):<br>
       &nbsp;&nbsp;&nbsp;&nbsp;requests.get(<br>
