@@ -3,10 +3,11 @@ Alert delivery: email, webhook, Slack, Discord, Telegram, PagerDuty.
 """
 import httpx
 import resend
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models import Monitor
+from app.models import Monitor, UptimeMonitor
 
 resend.api_key = settings.resend_api_key
 
@@ -54,11 +55,16 @@ async def send_down_alert(monitor: Monitor, reason: str, db: AsyncSession) -> No
 async def maybe_send_recovery_alert(monitor: Monitor, db: AsyncSession) -> None:
     if not monitor.alert_on_recovery:
         return
-    if not monitor.alert_sent_at:
-        return
 
-    monitor.alert_sent_at = None
+    result = await db.execute(
+        update(Monitor)
+        .where(Monitor.id == monitor.id, Monitor.alert_sent_at.isnot(None))
+        .values(alert_sent_at=None)
+        .returning(Monitor.id)
+    )
     await db.commit()
+    if not result.fetchone():
+        return
 
     subject = f"[DeadManCheck] {monitor.name} recovered"
     html_body = f"""
@@ -184,11 +190,16 @@ async def send_uptime_down_alert(monitor, status_code, error, db: AsyncSession) 
 async def maybe_send_uptime_recovery(monitor, db: AsyncSession) -> None:
     if not monitor.alert_on_recovery:
         return
-    if not monitor.alert_sent_at:
-        return
 
-    monitor.alert_sent_at = None
+    result = await db.execute(
+        update(UptimeMonitor)
+        .where(UptimeMonitor.id == monitor.id, UptimeMonitor.alert_sent_at.isnot(None))
+        .values(alert_sent_at=None)
+        .returning(UptimeMonitor.id)
+    )
     await db.commit()
+    if not result.fetchone():
+        return
 
     subject = f"[DeadManCheck] {monitor.name} is back UP"
     html_body = f"""
