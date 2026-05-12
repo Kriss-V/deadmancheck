@@ -49,7 +49,7 @@
       &nbsp;&nbsp;include Sidekiq::Job<br>
       <br>
       &nbsp;&nbsp;TOKEN = ENV['DEADMANCHECK_TOKEN']<br>
-      &nbsp;&nbsp;BASE  = "https://deadmancheck.io/ping/#{TOKEN}"<br>
+      &nbsp;&nbsp;BASE  = "https://deadmancheck.io/ping/&#35;{TOKEN}"<br>
       <br>
       &nbsp;&nbsp;def perform<br>
       &nbsp;&nbsp;&nbsp;&nbsp;dmc_start<br>
@@ -65,7 +65,7 @@
       &nbsp;&nbsp;private<br>
       <br>
       &nbsp;&nbsp;def dmc_start<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("#{BASE}/start"))<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("&#35;{BASE}/start"))<br>
       &nbsp;&nbsp;rescue; end<br>
       <br>
       &nbsp;&nbsp;def dmc_success(count)<br>
@@ -76,7 +76,7 @@
       &nbsp;&nbsp;rescue; end<br>
       <br>
       &nbsp;&nbsp;def dmc_fail<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("#{BASE}/fail"))<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("&#35;{BASE}/fail"))<br>
       &nbsp;&nbsp;rescue; end<br>
       end
     </div>
@@ -131,7 +131,7 @@
     </p>
     <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
       <span class="text-gray-500"># POST to /ping/{token} with count — triggers assertion check</span><br>
-      uri = URI("https://deadmancheck.io/ping/#{TOKEN}")<br>
+      uri = URI("https://deadmancheck.io/ping/&#35;{TOKEN}")<br>
       req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')<br>
       req.body = { count: rows_exported }.to_json<br>
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
