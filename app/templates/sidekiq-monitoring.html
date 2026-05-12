@@ -57,7 +57,7 @@
       &nbsp;&nbsp;&nbsp;&nbsp;rows = run_export<br>
       <br>
       &nbsp;&nbsp;&nbsp;&nbsp;dmc_success(rows)<br>
-      &nbsp;&nbsp;rescue => e<br>
+      &nbsp;&nbsp;rescue<br>
       &nbsp;&nbsp;&nbsp;&nbsp;dmc_fail<br>
       &nbsp;&nbsp;&nbsp;&nbsp;raise <span class="text-gray-500"># re-raise so Sidekiq handles retries</span><br>
       &nbsp;&nbsp;end<br>
