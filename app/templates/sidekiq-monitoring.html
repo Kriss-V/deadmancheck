@@ -1,0 +1,194 @@
+{# slug: sidekiq-monitoring | keyword: sidekiq monitoring | pillar: use-case #}
+{% extends "base.html" %}
+
+{% block title %}Sidekiq Job Monitoring — DeadManCheck{% endblock %}
+{% block meta_description %}Monitor Sidekiq scheduled jobs with dead man's switch alerting. Catch jobs that run but process nothing — output assertions for Ruby background workers.{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-6 pb-16">
+
+  <h1 class="text-4xl font-bold mb-4">Sidekiq Job Monitoring with DeadManCheck</h1>
+  <p class="text-gray-400 text-lg mb-10">
+    Sidekiq tells you when a job raises an exception. It doesn't tell you when a job runs,
+    processes zero records, and exits cleanly. DeadManCheck does.
+  </p>
+
+  <!-- The problem Sidekiq doesn't solve -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">What Sidekiq's built-in monitoring misses</h2>
+    <p class="text-gray-400 mb-4">
+      Sidekiq's retry mechanism and dead queue handle raised exceptions well. But the failures
+      that go unnoticed aren't exceptions — they're silent successes: jobs that complete with
+      no error and no useful output.
+    </p>
+    <ul class="text-gray-400 space-y-3">
+      <li><span class="text-white font-medium">Nightly export processes 0 rows</span> — upstream query returns empty. Job exits cleanly, Sidekiq marks it done.</li>
+      <li><span class="text-white font-medium">Scheduled job stops running</span> — sidekiq-cron schedule gets accidentally cleared. No alert fires.</li>
+      <li><span class="text-white font-medium">Worker takes 10× longer than usual</span> — data volume spike or slow database. Sidekiq doesn't alert on duration anomalies.</li>
+      <li><span class="text-white font-medium">Sidekiq process dies</span> — dyno restart, OOM kill, or deploy issue. Jobs queue up. Nobody notices until users complain.</li>
+    </ul>
+    <p class="text-gray-400 mt-4">
+      The dead man's switch pattern fixes this: your job pings an external service on success,
+      and that service alerts you if it stops hearing from the job on schedule.
+    </p>
+  </div>
+
+  <!-- Basic integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Add monitoring to any Sidekiq worker</h2>
+    <p class="text-gray-400 mb-4">
+      Add start, success, and fail pings to your worker's <code class="bg-gray-800 px-1 rounded text-sm">perform</code> method.
+      Uses Ruby's stdlib <code class="bg-gray-800 px-1 rounded text-sm">Net::HTTP</code> — no extra gem required.
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      <span class="text-gray-500"># app/workers/daily_export_worker.rb</span><br>
+      require 'net/http'<br>
+      require 'json'<br>
+      <br>
+      class DailyExportWorker<br>
+      &nbsp;&nbsp;include Sidekiq::Job<br>
+      <br>
+      &nbsp;&nbsp;TOKEN = ENV['DEADMANCHECK_TOKEN']<br>
+      &nbsp;&nbsp;BASE  = "https://deadmancheck.io/ping/#{TOKEN}"<br>
+      <br>
+      &nbsp;&nbsp;def perform<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dmc_start<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;rows = run_export<br>
+      <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dmc_success(rows)<br>
+      &nbsp;&nbsp;rescue => e<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;dmc_fail<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;raise <span class="text-gray-500"># re-raise so Sidekiq handles retries</span><br>
+      &nbsp;&nbsp;end<br>
+      <br>
+      &nbsp;&nbsp;private<br>
+      <br>
+      &nbsp;&nbsp;def dmc_start<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("#{BASE}/start"))<br>
+      &nbsp;&nbsp;rescue; end<br>
+      <br>
+      &nbsp;&nbsp;def dmc_success(count)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;uri = URI(BASE)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;req.body = { count: count }.to_json<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }<br>
+      &nbsp;&nbsp;rescue; end<br>
+      <br>
+      &nbsp;&nbsp;def dmc_fail<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;Net::HTTP.get(URI("#{BASE}/fail"))<br>
+      &nbsp;&nbsp;rescue; end<br>
+      end
+    </div>
+    <p class="text-gray-400 text-sm">
+      Set the monitor interval slightly longer than your schedule — e.g.
+      <code class="bg-gray-800 px-1 rounded">25 hours</code> for a daily job.
+      DeadManCheck alerts if the success ping doesn't arrive within that window.
+    </p>
+  </div>
+
+  <!-- sidekiq-cron / sidekiq-scheduler -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Using sidekiq-cron or sidekiq-scheduler?</h2>
+    <p class="text-gray-400 mb-4">
+      The same worker pattern applies. If you're using
+      <code class="bg-gray-800 px-1 rounded text-sm">sidekiq-cron</code> or
+      <code class="bg-gray-800 px-1 rounded text-sm">sidekiq-scheduler</code>
+      to run jobs on a schedule, your <code class="bg-gray-800 px-1 rounded text-sm">perform</code>
+      method is already the right place to add the pings — no extra configuration needed.
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      <span class="text-gray-500"># config/schedule.yml (sidekiq-scheduler)</span><br>
+      daily_export:<br>
+      &nbsp;&nbsp;cron: "0 2 * * *"<br>
+      &nbsp;&nbsp;class: DailyExportWorker<br>
+      &nbsp;&nbsp;queue: default<br>
+      <br>
+      <span class="text-gray-500"># The worker above handles all pings — nothing else to configure.</span>
+    </div>
+    <p class="text-gray-400 text-sm">
+      One monitor per scheduled job. If sidekiq-cron loses its Redis state after a restart,
+      DeadManCheck will alert you — the expected ping never arrives.
+    </p>
+  </div>
+
+  <!-- Output assertions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Output assertions: catch workers that do nothing</h2>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck's <span class="text-brand-500">output assertion</span> feature alerts you
+      when a job completes but the count it reports is below a threshold you set.
+      Cronitor, Healthchecks.io, and Better Stack don't have this — they only check that the
+      ping arrived.
+    </p>
+    <ul class="text-gray-400 space-y-2 mb-4">
+      <li>Export worker exported 0 rows → alert (even though the job succeeded)</li>
+      <li>Billing sync processed 0 invoices → alert</li>
+      <li>Notification worker sent 0 emails → alert</li>
+    </ul>
+    <p class="text-gray-400 mb-4">
+      Pass the count in the POST body and configure your threshold in the monitor settings:
+    </p>
+    <div class="bg-gray-800 rounded-lg p-5 text-sm font-mono mb-4 overflow-x-auto">
+      <span class="text-gray-500"># POST to /ping/{token} with count — triggers assertion check</span><br>
+      uri = URI("https://deadmancheck.io/ping/#{TOKEN}")<br>
+      req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')<br>
+      req.body = { count: rows_exported }.to_json<br>
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
+    </div>
+    <p class="text-gray-400 text-sm">
+      See <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">how output assertions work →</a>
+    </p>
+  </div>
+
+  <!-- Duration monitoring -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Duration monitoring for slow workers</h2>
+    <p class="text-gray-400 mb-4">
+      DeadManCheck tracks how long each job run takes and alerts when a run takes significantly
+      longer than the rolling average. The start ping triggers the timer; the success ping stops it.
+    </p>
+    <p class="text-gray-400 mb-4">
+      After 5+ runs, DeadManCheck builds a rolling baseline. A job that normally takes 30 seconds
+      but suddenly takes 8 minutes gets flagged — a leading indicator of a slow query, a data
+      volume spike, or a downstream service degrading.
+    </p>
+    <p class="text-gray-400 text-sm">
+      Learn more about <a href="/monitor-long-running-cron-jobs" class="text-brand-500 hover:underline">duration monitoring with rolling average anomaly detection →</a>
+    </p>
+  </div>
+
+  <!-- Setup summary -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Setup in 2 minutes</h2>
+    <ol class="text-gray-400 space-y-3 list-decimal list-inside">
+      <li><a href="/register" class="text-brand-500 hover:underline">Create a free monitor</a> — set interval to match your job schedule + buffer</li>
+      <li>Copy your monitor token into <code class="bg-gray-800 px-1 rounded text-sm">DEADMANCHECK_TOKEN</code> env var</li>
+      <li>Add the <code class="bg-gray-800 px-1 rounded text-sm">dmc_start</code> / <code class="bg-gray-800 px-1 rounded text-sm">dmc_success</code> / <code class="bg-gray-800 px-1 rounded text-sm">dmc_fail</code> helpers to your worker</li>
+      <li>Optionally configure an output assertion threshold in the monitor settings</li>
+      <li>Deploy and watch the first ping arrive in the dashboard</li>
+    </ol>
+  </div>
+
+  <!-- Related guides -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 mb-10">
+    <h2 class="text-2xl font-bold mb-4">Related guides</h2>
+    <ul class="text-gray-400 space-y-2">
+      <li><a href="/celery-task-monitoring" class="text-brand-500 hover:underline">Celery task monitoring — the same pattern for Python workers</a></li>
+      <li><a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">Output assertions — catch jobs that run but do nothing</a></li>
+      <li><a href="/monitor-long-running-cron-jobs" class="text-brand-500 hover:underline">Duration monitoring with rolling average anomaly detection →</a></li>
+      <li><a href="/cron-job-monitoring" class="text-brand-500 hover:underline">General cron job monitoring guide</a></li>
+      <li><a href="/pricing" class="text-brand-500 hover:underline">Pricing — free for 5 monitors, $12/mo for 100</a></li>
+    </ul>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center">
+    <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg font-semibold inline-block">
+      Start monitoring free — no credit card needed
+    </a>
+    <p class="text-gray-500 text-sm mt-3">Free for 5 monitors. $12/mo for 100. Self-host for free.</p>
+  </div>
+
+</section>
+{% endblock %}
