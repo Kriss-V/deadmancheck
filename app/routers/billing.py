@@ -2,7 +2,7 @@
 Stripe billing — checkout, customer portal, and webhook handler.
 
 Flow:
-  1. User clicks upgrade on pricing page → POST /billing/checkout?plan=developer
+  1. User clicks upgrade on pricing page → POST /billing/checkout?plan=pro
   2. We create a Stripe Checkout session and redirect to Stripe
   3. Stripe redirects back to /dashboard on success
   4. Stripe sends webhook → checkout.session.completed → we update user.plan
@@ -28,9 +28,7 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 stripe.api_key = settings.stripe_secret_key
 
 PLAN_PRICE_IDS = {
-    "developer": settings.stripe_price_developer,
-    "team": settings.stripe_price_team,
-    "business": settings.stripe_price_business,
+    "pro": settings.stripe_price_pro,
 }
 
 # Maps Stripe price ID back to plan name — built at import time from settings.
