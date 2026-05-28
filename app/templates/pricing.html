@@ -1,117 +1,83 @@
 {% extends "base.html" %}
 
 {% block title %}Pricing — DeadManCheck{% endblock %}
-{% block meta_description %}DeadManCheck pricing: free for 5 monitors, $12/mo for 100. Compare plans for cron job monitoring, background jobs, and scheduled tasks.{% endblock %}
+{% block meta_description %}DeadManCheck pricing: free for 5 monitors, $50/mo Pro for unlimited monitors, Slack, Discord, Telegram, PagerDuty, and output assertions.{% endblock %}
 
 {% block content %}
-<section class="max-w-5xl mx-auto px-6 pt-20 pb-24">
+<section class="max-w-3xl mx-auto px-6 pt-20 pb-24">
   <div class="text-center mb-16">
     <h1 class="text-4xl font-bold mb-4">Simple, honest pricing</h1>
     <p class="text-gray-400 text-lg">Or <a href="https://github.com/Kriss-V/deadmancheck" class="text-brand-500 hover:underline">self-host for free</a> — forever.</p>
   </div>
 
-  <div class="grid md:grid-cols-4 gap-6">
-    {% for plan in [
-      {
-        "name": "Hobby",
-        "price": "Free",
-        "period": "",
-        "monitors": 5,
-        "check_interval": "60s",
-        "history_days": 7,
-        "features": ["Email alerts", "Webhooks", "Duration monitoring", "Status pages", "Website uptime monitoring"],
-        "cta": "Get started",
-        "href": "/register",
-        "highlight": false
-      },
-      {
-        "name": "Developer",
-        "price": "$12",
-        "period": "/month",
-        "monitors": 100,
-        "check_interval": "30s",
-        "history_days": 30,
-        "features": ["Everything in Hobby", "Output assertions", "Slack & Discord alerts", "Telegram alerts", "Email support"],
-        "cta": "Get started",
-        "href": "/register?plan=developer",
-        "highlight": false
-      },
-      {
-        "name": "Team",
-        "price": "$39",
-        "period": "/month",
-        "monitors": 200,
-        "check_interval": "10s",
-        "history_days": 90,
-        "features": ["Everything in Developer", "PagerDuty integration", "Priority support"],
-        "cta": "Get started",
-        "href": "/register?plan=team",
-        "highlight": true
-      },
-      {
-        "name": "Business",
-        "price": "$99",
-        "period": "/month",
-        "monitors": "Unlimited",
-        "check_interval": "10s",
-        "history_days": 365,
-        "features": ["Everything in Team", "Unlimited monitors", "SSO (Google & GitHub)", "Invoice billing"],
-        "cta": "Get started",
-        "href": "/register?plan=business",
-        "highlight": false
-      }
-    ] %}
-    <div class="relative bg-gray-900 border {% if plan.highlight %}border-brand-500{% else %}border-gray-800{% endif %} rounded-xl p-6 flex flex-col">
-      {% if plan.highlight %}
-      <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-        <span class="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Most popular</span>
-      </div>
-      {% endif %}
+  <div class="grid md:grid-cols-2 gap-6">
+    <!-- Free -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 flex flex-col">
       <div class="mb-6">
-        <h3 class="font-semibold text-lg mb-1">{{ plan.name }}</h3>
+        <h3 class="font-semibold text-lg mb-1">Free</h3>
         <div class="flex items-baseline gap-1">
-          <span class="text-3xl font-bold">{{ plan.price }}</span>
-          <span class="text-gray-400 text-sm">{{ plan.period }}</span>
+          <span class="text-3xl font-bold">$0</span>
+          <span class="text-gray-400 text-sm">/month</span>
         </div>
-        {% if plan.price_usd is defined %}
-        <div class="text-gray-500 text-xs mt-1">{{ plan.price_usd }}/month</div>
-        {% endif %}
       </div>
       <div class="space-y-3 mb-6 text-sm text-gray-400 flex-1">
         <div class="flex justify-between">
           <span>Monitors</span>
-          <span class="text-white font-medium">{{ plan.monitors }}</span>
+          <span class="text-white font-medium">5</span>
         </div>
         <div class="flex justify-between">
           <span>Check interval</span>
-          <span class="text-white font-medium">{{ plan.check_interval }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>History</span>
-          <span class="text-white font-medium">{{ plan.history_days }}d</span>
+          <span class="text-white font-medium">60s</span>
         </div>
         <div class="border-t border-gray-800 pt-3 space-y-2">
-          {% for f in plan.features %}
-          <div class="flex items-center gap-2">
-            <span class="text-brand-500">✓</span>
-            <span>{{ f }}</span>
-          </div>
-          {% endfor %}
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Email alerts</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Webhooks</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Duration monitoring</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Status pages</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Website uptime monitoring</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Sign in with GitHub / Google</span></div>
         </div>
       </div>
-      {% if plan.price == "Free" %}
-      <a href="{{ plan.href }}" class="block text-center border border-gray-700 hover:border-gray-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm">
-        {{ plan.cta }}
+      <a href="/register" class="block text-center border border-gray-700 hover:border-gray-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm">
+        Get started free
       </a>
-      {% else %}
-      <form method="post" action="/billing/checkout?plan={{ plan.name | lower }}">
-        <button type="submit" class="w-full text-center {% if plan.highlight %}bg-brand-600 hover:bg-brand-700{% else %}border border-gray-700 hover:border-gray-500{% endif %} text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm cursor-pointer">
-          {{ plan.cta }}
+    </div>
+
+    <!-- Pro -->
+    <div class="relative bg-gray-900 border border-brand-500 rounded-xl p-6 flex flex-col">
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <span class="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Most popular</span>
+      </div>
+      <div class="mb-6">
+        <h3 class="font-semibold text-lg mb-1">Pro</h3>
+        <div class="flex items-baseline gap-1">
+          <span class="text-3xl font-bold">$50</span>
+          <span class="text-gray-400 text-sm">/month</span>
+        </div>
+      </div>
+      <div class="space-y-3 mb-6 text-sm text-gray-400 flex-1">
+        <div class="flex justify-between">
+          <span>Monitors</span>
+          <span class="text-white font-medium">Unlimited</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Check interval</span>
+          <span class="text-white font-medium">10s</span>
+        </div>
+        <div class="border-t border-gray-800 pt-3 space-y-2">
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Everything in Free</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Output assertions</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Slack & Discord alerts</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Telegram alerts</span></div>
+          <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>PagerDuty integration</span></div>
+        </div>
+      </div>
+      <form method="post" action="/billing/checkout?plan=pro">
+        <button type="submit" class="w-full text-center bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm cursor-pointer">
+          Get started
         </button>
       </form>
-      {% endif %}
     </div>
-    {% endfor %}
   </div>
 
   <div class="mt-12 text-center text-gray-400 text-sm">
@@ -129,5 +95,4 @@
     </a>
   </div>
 </section>
-
 {% endblock %}
