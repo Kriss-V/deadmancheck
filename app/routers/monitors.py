@@ -24,27 +24,22 @@ templates.env.filters["fromjson"] = json.loads
 
 PLAN_LIMITS = {
     "free": settings.plan_free_monitors,
-    "developer": settings.plan_developer_monitors,
-    "team": settings.plan_team_monitors,
-    "business": None,  # unlimited
+    "pro": None,  # unlimited
 }
-
-_DEVELOPER_PLANS = {"developer", "team", "business"}
-_TEAM_PLANS = {"team", "business"}
 
 
 def check_alert_plan(user: User, body) -> None:
-    if user.plan not in _DEVELOPER_PLANS:
-        if body.slack_webhook_url or body.discord_webhook_url or body.telegram_bot_token:
+    if user.plan != "pro":
+        if (
+            body.slack_webhook_url
+            or body.discord_webhook_url
+            or body.telegram_bot_token
+            or body.pagerduty_key
+            or (body.assertions and body.assertions != "[]")
+        ):
             raise HTTPException(
                 status_code=402,
-                detail="Slack, Discord, and Telegram alerts require the Developer plan or higher.",
-            )
-    if user.plan not in _TEAM_PLANS:
-        if body.pagerduty_key:
-            raise HTTPException(
-                status_code=402,
-                detail="PagerDuty integration requires the Team plan or higher.",
+                detail="Slack, Discord, Telegram, PagerDuty, and output assertions require the Pro plan.",
             )
 
 
