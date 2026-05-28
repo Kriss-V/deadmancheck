@@ -47,7 +47,7 @@ curl https://your-instance.com/ping/YOUR-MONITOR-ID/start
 ./your_job.sh
 curl https://your-instance.com/ping/YOUR-MONITOR-ID
 
-# With output assertions (Developer+ on hosted)
+# With output assertions (Pro on hosted)
 curl -X POST https://your-instance.com/ping/YOUR-MONITOR-ID \
   -H "Content-Type: application/json" \
   -d '{"rows_exported": 1523, "status": "ok"}'
@@ -74,10 +74,8 @@ Don't want to run your own instance? Use [DeadManCheck.io](https://deadmancheck.
 
 | Plan | Price | Monitors |
 |---|---|---|
-| Hobby | Free | 5 |
-| Developer | $12/month | 100 |
-| Team | $39/month | 200 |
-| Business | $99/month | Unlimited |
+| Free | $0/month | 5 |
+| Pro | $50/month | Unlimited |
 
 ## License
 
