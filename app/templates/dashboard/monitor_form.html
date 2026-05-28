@@ -106,7 +106,7 @@
         <div class="flex items-center gap-2">
           <h3 class="font-medium text-sm">Output assertions <span class="text-gray-500 font-normal">(optional)</span></h3>
           {% if user.plan == 'free' %}
-          <a href="/pricing" class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full hover:bg-brand-500/30 transition-colors">Developer+ →</a>
+          <a href="/pricing" class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full hover:bg-brand-500/30 transition-colors">Pro →</a>
           {% endif %}
         </div>
         {% if user.plan != 'free' %}
@@ -122,7 +122,7 @@
       </div>
       <div id="assertionRules" class="space-y-2"></div>
       {% else %}
-      <p class="text-xs text-gray-600">Upgrade to Developer to validate your job's output on every ping.</p>
+      <p class="text-xs text-gray-600">Upgrade to Pro to validate your job's output on every ping.</p>
       {% endif %}
     </div>
 

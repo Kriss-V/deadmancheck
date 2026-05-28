@@ -24,7 +24,7 @@ class User(Base):
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Billing
-    plan: Mapped[str] = mapped_column(String(50), default="free")  # free | developer | team | business
+    plan: Mapped[str] = mapped_column(String(50), default="free")  # free | pro
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
