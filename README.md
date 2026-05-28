@@ -75,7 +75,7 @@ Don't want to run your own instance? Use [DeadManCheck.io](https://deadmancheck.
 | Plan | Price | Monitors |
 |---|---|---|
 | Free | $0/month | 5 |
-| Pro | $50/month | Unlimited |
+| Pro | $29/month | Unlimited |
 
 ## License
 
