@@ -14,17 +14,12 @@ class Settings(BaseSettings):
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
-    stripe_price_developer: str = ""
-    stripe_price_team: str = ""
-    stripe_price_business: str = ""
+    stripe_price_pro: str = ""
 
     app_url: str = "http://localhost:8000"
     environment: str = "development"
 
     plan_free_monitors: int = 5
-    plan_developer_monitors: int = 100
-    plan_team_monitors: int = 200
-    plan_business_monitors: int = 1000
 
     google_client_id: str = ""
     google_client_secret: str = ""
