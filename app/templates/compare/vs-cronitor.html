@@ -91,10 +91,9 @@
   <h2 class="text-2xl font-bold mb-6 text-center">Where DeadManCheck goes further</h2>
   <div class="space-y-4">
     <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
-      <h3 class="font-semibold text-white mb-2">Output assertions — catch jobs that succeed but do nothing</h3>
+      <h3 class="font-semibold text-white mb-2">Output assertions on every monitor — without per-monitor pricing</h3>
       <p class="text-gray-400 text-sm">
-        Your ETL job ran. It exited 0. It exported 0 rows. Cronitor marks it green. DeadManCheck lets you assert <code class="text-brand-500">rows_exported &gt; 0</code> on every ping — and alerts you the moment that fails.
-        No other cron monitoring tool does this.
+        Your ETL job ran. It exited 0. It exported 0 rows. Both tools can catch this if your job reports a count. On DeadManCheck you send <code class="text-brand-500">{"count": 0}</code> with your ping, set a rule like <code class="text-brand-500">count &gt; 0</code>, and get alerted the moment it fails — on as many monitors as you like for a flat $29/mo.
       </p>
     </div>
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
@@ -137,9 +136,9 @@
           <td class="text-center py-3 px-4 text-green-400">✓</td>
         </tr>
         <tr class="bg-brand-500/5">
-          <td class="py-3 pr-6 text-gray-300">Output assertions <span class="text-xs text-brand-500 ml-1">unique</span></td>
+          <td class="py-3 pr-6 text-gray-300">Output assertions (count of work done)</td>
           <td class="text-center py-3 px-4 text-green-400">✓ Pro</td>
-          <td class="text-center py-3 px-4 text-gray-500">✗</td>
+          <td class="text-center py-3 px-4 text-green-400">✓</td>
         </tr>
         <tr>
           <td class="py-3 pr-6 text-gray-300">Long-running job detection</td>
@@ -270,7 +269,7 @@ curl -s https://deadmancheck.io/ping/YOUR-TOKEN</code></pre>
     <a href="/cron-job-output-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Feature</div>
       <div class="text-white font-semibold text-sm">Cron job output monitoring</div>
-      <div class="text-gray-400 text-xs mt-1">The feature Cronitor doesn't have</div>
+      <div class="text-gray-400 text-xs mt-1">Catch jobs that run but do nothing</div>
     </a>
     <a href="/cron-job-monitoring" class="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
       <div class="text-brand-500 text-xs font-medium mb-1 uppercase tracking-wide">Overview</div>

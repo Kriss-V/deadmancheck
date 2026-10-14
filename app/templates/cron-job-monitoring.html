@@ -30,13 +30,13 @@
       <div class="text-yellow-400 text-2xl mb-3">⌛</div>
       <h3 class="font-semibold text-white mb-2">Job runs too long</h3>
       <p class="text-gray-400 text-sm">Your 2-minute backup job is now taking 45 minutes. It will technically "succeed" — but something is wrong. DeadManCheck tracks duration and alerts on anomalies automatically.</p>
-      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Unique to DeadManCheck</span>
+      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">No thresholds to configure</span>
     </div>
     <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
       <div class="text-orange-400 text-2xl mb-3">📭</div>
       <h3 class="font-semibold text-white mb-2">Job runs but does nothing</h3>
       <p class="text-gray-400 text-sm">Exit code 0. On time. But it exported 0 rows, synced 0 records, or returned nothing. DeadManCheck checks whether your job actually produced real results — not just that it ran.</p>
-      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Unique to DeadManCheck</span>
+      <span class="text-brand-500 text-xs font-medium mt-3 inline-block">Output assertions · Pro</span>
     </div>
   </div>
 </section>
@@ -57,10 +57,10 @@
       <div class="text-gray-100">curl -s https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span></div>
     </div>
     <div class="bg-gray-950 rounded-lg p-5 font-mono text-sm overflow-x-auto">
-      <div class="text-gray-500 mb-2"># Output assertions — send job result as JSON (Pro plan)</div>
+      <div class="text-gray-500 mb-2"># Output assertions — send a count of work done (Pro plan)</div>
       <div class="text-gray-100">curl -s -X POST https://deadmancheck.io/ping/<span class="text-brand-500">your-token</span> \</div>
       <div class="text-gray-100 pl-4">-H "Content-Type: application/json" \</div>
-      <div class="text-gray-100 pl-4">-d '{"rows_exported": 1452, "status": "ok"}'</div>
+      <div class="text-gray-100 pl-4">-d '{"count": 1452}'</div>
     </div>
   </div>
 </section>

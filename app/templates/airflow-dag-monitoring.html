@@ -118,8 +118,8 @@
       <li>Report generation produced 0 files → alert</li>
     </ul>
     <p class="text-gray-400">
-      No other cron monitoring tool checks this. Cronitor, Healthchecks.io, Better Stack — all of them
-      just verify the ping arrived. Only DeadManCheck lets you assert on the work done.
+      A plain heartbeat monitor only verifies the ping arrived. Output assertions check the work done —
+      Airflow can mark the DAG green, and you still get alerted when the count is 0.
       See <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">how output assertions work →</a>
     </p>
   </div>
