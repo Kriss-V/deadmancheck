@@ -28,19 +28,24 @@ PLAN_LIMITS = {
 }
 
 
-def check_alert_plan(user: User, body) -> None:
-    if user.plan != "pro":
-        if (
-            body.slack_webhook_url
-            or body.discord_webhook_url
-            or body.telegram_bot_token
-            or body.pagerduty_key
-            or (body.assertions and body.assertions != "[]")
-        ):
-            raise HTTPException(
-                status_code=402,
-                detail="Slack, Discord, Telegram, PagerDuty, and output assertions require the Pro plan.",
-            )
+PRO_FIELDS = ("slack_webhook_url", "discord_webhook_url", "telegram_bot_token", "pagerduty_key", "assertions")
+
+
+def check_alert_plan(user: User, body, existing=None) -> None:
+    """Block free users from adding Pro features. When editing, Pro settings already on
+    the monitor (e.g. from before a downgrade) may be kept unchanged or removed."""
+    if user.plan == "pro":
+        return
+    for field in PRO_FIELDS:
+        value = getattr(body, field, None)
+        if not value or value == "[]":
+            continue
+        if existing is not None and value == getattr(existing, field, None):
+            continue
+        raise HTTPException(
+            status_code=402,
+            detail="Slack, Discord, Telegram, PagerDuty, and output assertions require the Pro plan.",
+        )
 
 
 async def _count_all_monitors(user_id, db: AsyncSession) -> int:
@@ -194,8 +199,8 @@ async def update_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    check_alert_plan(user, body)
     monitor = await _get_owned_monitor(monitor_id, user, db)
+    check_alert_plan(user, body, existing=monitor)
     for field, value in body.model_dump().items():
         setattr(monitor, field, value)
     monitor.next_expected_at = compute_next_expected(monitor)

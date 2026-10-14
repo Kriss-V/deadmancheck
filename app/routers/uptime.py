@@ -153,8 +153,8 @@ async def update_uptime_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    check_alert_plan(user, body)
     monitor = await _get_owned_monitor(monitor_id, user, db)
+    check_alert_plan(user, body, existing=monitor)
     for field, value in body.model_dump().items():
         setattr(monitor, field, value)
     await db.commit()

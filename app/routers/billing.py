@@ -165,7 +165,8 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
 <h3>After your billing period ends</h3>
 <ul>
   <li>Your account will be downgraded to the free plan (5 monitors)</li>
-  <li>Monitors above the free limit will stop alerting</li>
+  <li>All your existing monitors and alerts keep working</li>
+  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
@@ -198,8 +199,8 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
 <p>Your DeadManCheck subscription has been cancelled and your account has been downgraded to the free plan.</p>
 <h3>What this means</h3>
 <ul>
-  <li>You can keep up to <strong>5 monitors</strong></li>
-  <li>Monitors above the free limit will stop alerting</li>
+  <li>All your existing monitors and alerts keep working</li>
+  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
@@ -243,8 +244,8 @@ async def _handle_subscription_deleted(sub: dict, db: AsyncSession) -> None:
 <p>Your DeadManCheck subscription has been cancelled and your account has been downgraded to the free plan.</p>
 <h3>What this means</h3>
 <ul>
-  <li>You can keep up to <strong>5 monitors</strong></li>
-  <li>Monitors above the free limit will stop alerting</li>
+  <li>All your existing monitors and alerts keep working</li>
+  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
