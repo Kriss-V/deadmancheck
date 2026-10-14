@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block meta_description %}Cron job monitoring that knows when your job ran but did nothing. Alerts for missed runs, timeouts, and zero-output jobs. Free for 5 monitors, $29/mo Pro for unlimited.{% endblock %}
+{% block meta_description %}Cron job monitoring that knows when your job ran but did nothing. Alerts for missed runs, timeouts, and zero-output jobs. Free for 20 monitors, $29/mo Pro for unlimited.{% endblock %}
 
 {% block extra_head %}
 <script type="application/ld+json">
@@ -18,7 +18,7 @@
       "name": "Free",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Free for 5 monitors"
+      "description": "Free for 20 monitors"
     },
     {
       "@type": "Offer",
@@ -54,7 +54,7 @@
       Self-host on GitHub →
     </a>
   </div>
-  <p class="text-gray-500 text-sm mt-4">Free for 5 monitors. No credit card needed.</p>
+  <p class="text-gray-500 text-sm mt-4">Free for 20 monitors. No credit card needed.</p>
 </section>
 
 <!-- How it works -->
@@ -96,7 +96,7 @@
     <div class="bg-gray-900 border border-brand-500/40 rounded-xl p-6">
       <div class="flex items-start justify-between mb-3">
         <span class="text-3xl">🔬</span>
-        <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full">Pro</span>
+        <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full">1 monitor free</span>
       </div>
       <h3 class="font-semibold text-lg mb-2">It runs — but does nothing</h3>
       <p class="text-gray-400 text-sm leading-relaxed">Exit code 0, on time, and it exported 0 rows. Send a count with your ping, set a rule like <code class="text-brand-500">count &gt; 0</code>, and get alerted when the job technically succeeded but did no work.</p>
@@ -108,7 +108,7 @@
 <section class="max-w-4xl mx-auto px-6 pb-20">
   <div class="bg-gray-900 border border-brand-500/30 rounded-2xl p-5 sm:p-8 overflow-hidden">
     <div class="mb-3">
-      <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Output assertions · Pro</span>
+      <span class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Output assertions · free on 1 monitor, unlimited on Pro</span>
     </div>
     <h2 class="text-xl sm:text-2xl font-bold mb-3">Your backup ran. It exported 0 rows. You found out three weeks later.</h2>
     <p class="text-gray-400 mb-4">A plain heartbeat only asks <em>did it run?</em> Output assertions also ask <em>did it actually do anything?</em> Include a <code class="text-brand-500">count</code> in your ping — rows exported, files copied, records synced — and DeadManCheck checks it against your rules on every run. <a href="/cron-job-output-monitoring" class="text-brand-500 hover:underline">How output assertions work →</a></p>
@@ -163,7 +163,7 @@
 <!-- CTA -->
 <section class="max-w-2xl mx-auto px-6 pb-24 text-center">
   <h2 class="text-3xl font-bold mb-4">Start monitoring in 2 minutes</h2>
-  <p class="text-gray-400 mb-8">Free for 5 monitors. No credit card. Self-host forever.</p>
+  <p class="text-gray-400 mb-8">Free for 20 monitors. No credit card. Self-host forever.</p>
   <a href="/register" class="bg-brand-600 hover:bg-brand-700 text-white px-10 py-4 rounded-lg font-semibold text-lg transition-colors inline-block">
     Create free account
   </a>

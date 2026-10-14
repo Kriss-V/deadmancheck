@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.models import Monitor, UptimeCheck, UptimeMonitor, User
 from app.routers.monitors import PLAN_LIMITS, _count_all_monitors, check_alert_plan
@@ -128,7 +129,7 @@ async def create_uptime_monitor(
 ):
     check_alert_plan(user, body)
     # Enforce shared plan limit (cron + uptime combined)
-    limit = PLAN_LIMITS.get(user.plan, 5)
+    limit = PLAN_LIMITS.get(user.plan, settings.plan_free_monitors)
     if limit is not None:
         count = await _count_all_monitors(user.id, db)
         if count >= limit:

@@ -101,28 +101,31 @@
     </div>
 
     <!-- Assertions -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 {% if user.plan == 'free' %}opacity-60{% endif %}">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 {% if not assertions_allowed %}opacity-60{% endif %}">
       <div class="flex items-center justify-between mb-1">
         <div class="flex items-center gap-2">
           <h3 class="font-medium text-sm">Output assertions <span class="text-gray-500 font-normal">(optional)</span></h3>
           {% if user.plan == 'free' %}
-          <a href="/pricing" class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full hover:bg-brand-500/30 transition-colors">Pro →</a>
+          <a href="/pricing" class="text-xs bg-brand-500/20 text-brand-500 border border-brand-500/30 px-2 py-0.5 rounded-full hover:bg-brand-500/30 transition-colors">{% if assertions_allowed %}1 monitor free{% else %}Pro →{% endif %}</a>
           {% endif %}
         </div>
-        {% if user.plan != 'free' %}
+        {% if assertions_allowed %}
         <button type="button" id="addAssertionBtn" class="text-brand-500 hover:text-brand-400 text-xs transition-colors">+ Add rule</button>
         {% endif %}
       </div>
       <p class="text-xs text-gray-500 mb-3">Alert when your job runs but produces nothing — zero rows exported, zero records synced, zero emails sent.</p>
-      {% if user.plan != 'free' %}
+      {% if assertions_allowed %}
       <div class="bg-gray-800 rounded-lg p-3 mb-4 text-xs space-y-1">
         <p class="text-gray-400"><span class="text-white font-medium">Step 1</span> — Send a count with your ping:</p>
         <code class="text-gray-300 block pl-2">curl -X POST .../ping/TOKEN \<br>&nbsp;&nbsp;-H "Content-Type: application/json" \<br>&nbsp;&nbsp;-d '{"count": 1500}'</code>
         <p class="text-gray-400 pt-1"><span class="text-white font-medium">Step 2</span> — Add a rule below, e.g. <code class="text-gray-300">count &gt; 0</code> to alert if nothing was processed.</p>
+        {% if user.plan == 'free' %}
+        <p class="text-gray-500 pt-1">The Free plan includes output assertions on one monitor. <a href="/pricing" class="text-brand-500 hover:underline">Pro</a> unlocks them on every monitor.</p>
+        {% endif %}
       </div>
       <div id="assertionRules" class="space-y-2"></div>
       {% else %}
-      <p class="text-xs text-gray-600">Upgrade to Pro to validate your job's output on every ping.</p>
+      <p class="text-xs text-gray-600">You're already using output assertions on another monitor. Upgrade to Pro to use them on every monitor.</p>
       {% endif %}
     </div>
 

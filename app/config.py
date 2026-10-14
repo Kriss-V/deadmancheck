@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     app_url: str = "http://localhost:8000"
     environment: str = "development"
 
-    plan_free_monitors: int = 5
+    plan_free_monitors: int = 20
 
     google_client_id: str = ""
     google_client_secret: str = ""

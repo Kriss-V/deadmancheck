@@ -23,7 +23,7 @@ def make_body(**kwargs):
 
 def test_plan_limits_free():
     from app.routers.monitors import PLAN_LIMITS
-    assert PLAN_LIMITS["free"] == 5
+    assert PLAN_LIMITS["free"] == 20
 
 
 def test_plan_limits_pro_is_unlimited():
@@ -152,3 +152,26 @@ def test_downgraded_user_can_remove_pro_feature():
     from app.routers.monitors import check_alert_plan
     existing = make_body(slack_webhook_url="https://hooks.slack.com/x")
     check_alert_plan(make_user("free"), make_body(), existing)
+
+
+# ── One free output-assertion monitor ────────────────────────────────────────
+
+def test_free_allows_assertions_when_free_slot_available():
+    from app.routers.monitors import check_alert_plan
+    rules = '[{"op": ">", "value": 0}]'
+    check_alert_plan(make_user("free"), make_body(assertions=rules), assertion_slot_free=True)
+
+
+def test_free_blocks_assertions_when_free_slot_used():
+    from app.routers.monitors import check_alert_plan
+    rules = '[{"op": ">", "value": 0}]'
+    with pytest.raises(HTTPException) as exc:
+        check_alert_plan(make_user("free"), make_body(assertions=rules), assertion_slot_free=False)
+    assert exc.value.status_code == 402
+
+
+def test_free_assertion_slot_does_not_unlock_slack():
+    from app.routers.monitors import check_alert_plan
+    with pytest.raises(HTTPException) as exc:
+        check_alert_plan(make_user("free"), make_body(slack_webhook_url="https://hooks.slack.com/x"), assertion_slot_free=True)
+    assert exc.value.status_code == 402

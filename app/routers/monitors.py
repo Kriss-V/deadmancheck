@@ -31,9 +31,10 @@ PLAN_LIMITS = {
 PRO_FIELDS = ("slack_webhook_url", "discord_webhook_url", "telegram_bot_token", "pagerduty_key", "assertions")
 
 
-def check_alert_plan(user: User, body, existing=None) -> None:
+def check_alert_plan(user: User, body, existing=None, assertion_slot_free: bool = False) -> None:
     """Block free users from adding Pro features. When editing, Pro settings already on
-    the monitor (e.g. from before a downgrade) may be kept unchanged or removed."""
+    the monitor (e.g. from before a downgrade) may be kept unchanged or removed.
+    Free users get output assertions on one monitor (assertion_slot_free)."""
     if user.plan == "pro":
         return
     for field in PRO_FIELDS:
@@ -42,10 +43,25 @@ def check_alert_plan(user: User, body, existing=None) -> None:
             continue
         if existing is not None and value == getattr(existing, field, None):
             continue
+        if field == "assertions" and assertion_slot_free:
+            continue
         raise HTTPException(
             status_code=402,
-            detail="Slack, Discord, Telegram, PagerDuty, and output assertions require the Pro plan.",
+            detail="Slack, Discord, Telegram, PagerDuty, and output assertions on more than one monitor require the Pro plan.",
         )
+
+
+async def _free_assertion_slot_available(user_id, db: AsyncSession, exclude_monitor_id=None) -> bool:
+    """Free users may use output assertions on one monitor. True if no other monitor uses them."""
+    query = select(Monitor.id).where(
+        Monitor.user_id == user_id,
+        Monitor.assertions.is_not(None),
+        Monitor.assertions != "[]",
+    )
+    if exclude_monitor_id is not None:
+        query = query.where(Monitor.id != exclude_monitor_id)
+    result = await db.execute(query.limit(1))
+    return result.first() is None
 
 
 async def _count_all_monitors(user_id, db: AsyncSession) -> int:
@@ -66,7 +82,7 @@ async def dashboard(
         select(Monitor).where(Monitor.user_id == user.id).order_by(Monitor.created_at.desc())
     )
     monitors = result.scalars().all()
-    plan_limit = PLAN_LIMITS.get(user.plan, 5)
+    plan_limit = PLAN_LIMITS.get(user.plan, settings.plan_free_monitors)
     total_count = await _count_all_monitors(user.id, db)
     return templates.TemplateResponse("dashboard/index.html", {
         "request": request,
@@ -78,12 +94,17 @@ async def dashboard(
 
 
 @router.get("/monitors/new", response_class=HTMLResponse)
-async def new_monitor_page(request: Request, user: User = Depends(get_current_user)):
+async def new_monitor_page(
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     return templates.TemplateResponse("dashboard/monitor_form.html", {
         "request": request,
         "user": user,
         "monitor": None,
         "assertions_list": [],
+        "assertions_allowed": user.plan == "pro" or await _free_assertion_slot_available(user.id, db),
     })
 
 
@@ -141,6 +162,9 @@ async def edit_monitor_page(
         "user": user,
         "monitor": monitor,
         "assertions_list": assertions_list,
+        "assertions_allowed": user.plan == "pro"
+            or bool(assertions_list)
+            or await _free_assertion_slot_available(user.id, db, monitor.id),
     })
 
 
@@ -173,9 +197,10 @@ async def create_monitor(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    check_alert_plan(user, body)
+    slot_free = user.plan != "pro" and await _free_assertion_slot_available(user.id, db)
+    check_alert_plan(user, body, assertion_slot_free=slot_free)
     # Enforce plan limit (shared pool: cron + uptime)
-    limit = PLAN_LIMITS.get(user.plan, 5)
+    limit = PLAN_LIMITS.get(user.plan, settings.plan_free_monitors)
     if limit is not None:
         count = await _count_all_monitors(user.id, db)
         if count >= limit:
@@ -200,7 +225,8 @@ async def update_monitor(
     db: AsyncSession = Depends(get_db),
 ):
     monitor = await _get_owned_monitor(monitor_id, user, db)
-    check_alert_plan(user, body, existing=monitor)
+    slot_free = user.plan != "pro" and await _free_assertion_slot_available(user.id, db, monitor.id)
+    check_alert_plan(user, body, existing=monitor, assertion_slot_free=slot_free)
     for field, value in body.model_dump().items():
         setattr(monitor, field, value)
     monitor.next_expected_at = compute_next_expected(monitor)

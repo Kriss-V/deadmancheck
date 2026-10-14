@@ -164,9 +164,9 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
 <p>Your DeadManCheck subscription has been cancelled. You'll keep access to your current plan until the end of your billing period.</p>
 <h3>After your billing period ends</h3>
 <ul>
-  <li>Your account will be downgraded to the free plan (5 monitors)</li>
+  <li>Your account will be downgraded to the free plan (20 monitors)</li>
   <li>All your existing monitors and alerts keep working</li>
-  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
+  <li>You can't add more than 20 monitors, add Slack, Discord, Telegram or PagerDuty alerts, or use output assertions on more than one monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
@@ -200,7 +200,7 @@ async def _handle_subscription_updated(sub: dict, db: AsyncSession) -> None:
 <h3>What this means</h3>
 <ul>
   <li>All your existing monitors and alerts keep working</li>
-  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
+  <li>You can't add more than 20 monitors, add Slack, Discord, Telegram or PagerDuty alerts, or use output assertions on more than one monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
@@ -245,7 +245,7 @@ async def _handle_subscription_deleted(sub: dict, db: AsyncSession) -> None:
 <h3>What this means</h3>
 <ul>
   <li>All your existing monitors and alerts keep working</li>
-  <li>You can't add more than 5 monitors, or add Slack, Discord, Telegram, PagerDuty or output assertions to a monitor</li>
+  <li>You can't add more than 20 monitors, add Slack, Discord, Telegram or PagerDuty alerts, or use output assertions on more than one monitor</li>
   <li>Your data and history are preserved</li>
 </ul>
 <p>Changed your mind? You can resubscribe at any time:</p>
