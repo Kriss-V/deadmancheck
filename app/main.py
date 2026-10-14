@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -76,6 +76,16 @@ async def security_headers(request: Request, call_next):
         f"frame-ancestors 'none'"
     )
     return response
+
+
+@app.middleware("http")
+async def redirect_www_to_apex(request: Request, call_next):
+    if request.url.hostname == "www.deadmancheck.io":
+        target = f"https://deadmancheck.io{request.url.path}"
+        if request.url.query:
+            target += f"?{request.url.query}"
+        return RedirectResponse(target, status_code=301)
+    return await call_next(request)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
