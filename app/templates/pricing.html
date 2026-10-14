@@ -26,8 +26,8 @@
           <span class="text-white font-medium">5</span>
         </div>
         <div class="flex justify-between">
-          <span>Check interval</span>
-          <span class="text-white font-medium">60s</span>
+          <span>Uptime check interval</span>
+          <span class="text-white font-medium">1–60 min</span>
         </div>
         <div class="border-t border-gray-800 pt-3 space-y-2">
           <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Email alerts</span></div>
@@ -46,7 +46,7 @@
     <!-- Pro -->
     <div class="relative bg-gray-900 border border-brand-500 rounded-xl p-6 flex flex-col">
       <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-        <span class="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Most popular</span>
+        <span class="bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Recommended</span>
       </div>
       <div class="mb-6">
         <h3 class="font-semibold text-lg mb-1">Pro</h3>
@@ -61,8 +61,8 @@
           <span class="text-white font-medium">Unlimited</span>
         </div>
         <div class="flex justify-between">
-          <span>Check interval</span>
-          <span class="text-white font-medium">10s</span>
+          <span>Uptime check interval</span>
+          <span class="text-white font-medium">1–60 min</span>
         </div>
         <div class="border-t border-gray-800 pt-3 space-y-2">
           <div class="flex items-center gap-2"><span class="text-brand-500">✓</span><span>Everything in Free</span></div>
@@ -80,15 +80,30 @@
     </div>
   </div>
 
-  <div class="mt-12 text-center text-gray-400 text-sm">
-    <p>Questions? Email us at <a href="mailto:support@deadmancheck.io" class="text-brand-500 hover:underline">support@deadmancheck.io</a></p>
+  <div class="mt-20">
+    <h2 class="text-2xl font-bold mb-8 text-center">Questions</h2>
+    <div class="space-y-6 text-sm">
+      {% for q, a in [
+        ("What counts as a monitor?", "Each cron job monitor and each website uptime monitor counts as one. The Free plan's 5 monitors are shared between both kinds."),
+        ("What happens when I hit 5 monitors on Free?", "Your existing monitors keep working. You just can't add a sixth until you upgrade to Pro or remove one."),
+        ("Which features need Pro?", "Output assertions, plus Slack, Discord, Telegram and PagerDuty alerts. Email alerts, webhooks, duration monitoring, status pages and uptime checks are on both plans."),
+        ("Can I cancel anytime?", "Yes. Cancel from the billing portal in your dashboard. You keep Pro until the end of the period you've paid for, then your account moves to Free."),
+        ("Is self-hosting really free?", "Yes. The full source is on GitHub. Run it on your own server, set your own limits, and pay nothing — Pro is only for when you'd rather we run it for you."),
+      ] %}
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h3 class="font-semibold text-white mb-2">{{ q }}</h3>
+        <p class="text-gray-400 leading-relaxed">{{ a }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="mt-8 text-center text-gray-400 text-sm">Something else? Email <a href="mailto:support@deadmancheck.io" class="text-brand-500 hover:underline">support@deadmancheck.io</a></p>
   </div>
 
   <div class="mt-12 text-center">
     <h2 class="text-2xl font-bold mb-4">Want to self-host?</h2>
     <p class="text-gray-400 mb-6 max-w-lg mx-auto">
       Full source code on GitHub. Deploy on Railway, Render, or your own server in under 10 minutes.
-      Free forever. No limits.
+      Free forever, and you set your own limits.
     </p>
     <a href="https://github.com/Kriss-V/deadmancheck" class="border border-gray-700 hover:border-gray-500 text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors inline-block">
       View on GitHub →
